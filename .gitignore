@@ -1,3 +1,6 @@
 .idea
 __pycache__
+log
+log/test.log
+
 
