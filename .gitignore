@@ -2,5 +2,5 @@
 __pycache__
 log
 log/test.log
-
+.env
 
