@@ -4,6 +4,8 @@ import json
 import os
 from log import log
 from dotenv import load_dotenv
+import re
+import datetime
 
 load_dotenv()
 
@@ -41,16 +43,35 @@ def get_coin_now_price(crypto_symbol: str):
         return f"Failed to retrieve {crypto_id} price."
 
 
-def get_coin_historical_price(crypto_symbol: str, time_str: str):
+def match_specific_date(date_str):
+    # （YYYY-MM-DD）
+    date_pattern = r"\d{4}-\d{2}-\d{2}"
+
+    if re.match(date_pattern, date_str):
+        return True
+    return False
+
+def get_coin_historical_price(crypto_symbol: str, time_str: str, date_str: str):
     """Get the historical price of a cryptocurrency at a specific moment in time.
 
     Args:
         crypto_symbol: the cryptocurrency symbol, such as BTC, ETH, or SOL.
-        time_str:  Time parameter, and convert the time into a format like 2006-01-02 15:04:05.
+        date_str: the date parameter, if a vague date is provided, such as yesterday, the day before yesterday, or the day before that, convert them into numbers like -1, -2, -3 respectively,if a specific date is provided, convert it into a specific date format like 2006-01-02.
+        time_str:  Time parameter, and convert the time into a format like 15:04:05.
     """
 
     crypto_id = crypto_symbol.upper()
-    timeArray = time.strptime(time_str, "%Y-%m-%d %H:%M:%S")
+    log(f"The date_str is {date_str}.")
+    if match_specific_date(date_str):
+        date_time_str = date_str + " " + time_str
+    else:
+        now_time = datetime.datetime.now()
+        end_time = now_time + datetime.timedelta(days=int(date_str))
+        end_date = end_time.strftime('%Y-%m-%d')
+        log(f"The end_time is {end_time}, the end_date is {end_date}.")
+        date_time_str = end_date + " " + time_str
+
+    timeArray = time.strptime(date_time_str, "%Y-%m-%d %H:%M:%S")
     timestamp = time.mktime(timeArray)
     timestamp_str = str(int(timestamp * 1000))
     params = {
