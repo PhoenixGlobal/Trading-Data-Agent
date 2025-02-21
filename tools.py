@@ -156,12 +156,12 @@ def get_coin_supply_info(crypto_symbol: str):
         return f"Failed to retrieve the supply info of {crypto_id}."
 
 
-def get_coin_historical_periods_price(crypto_symbol: str, time_window: int):
+def get_coin_historical_periods_price(crypto_symbol: str, time_window: str):
     """Get the price of a cryptocurrency for the past 7 days, past 30 days, or past 24 hours.
 
     Args:
         crypto_symbol: the cryptocurrency symbol, such as BTC, ETH, or SOL.
-        time_window：  Time window can only be one of the following: past 7 days, past 30 days, or past 24 hours, and retrieve the corresponding number 7, 30, or 24.
+        time_window: Time window can only be one of the following: past 7 days, past 30 days, or past 24 hours, and retrieve the corresponding number 7, 30, or 24.
     """
 
     crypto_id = crypto_symbol.upper()
@@ -174,7 +174,7 @@ def get_coin_historical_periods_price(crypto_symbol: str, time_window: int):
 
     params = {
         "symbol": crypto_id,
-        "timeDimension": time_window
+        "timeDimension": int(time_window)
     }
     try:
         response = requests.get(historical_price_url, headers=headers, params=params)
