@@ -6,6 +6,7 @@ from tools import *
 from dotenv import load_dotenv
 from langgraph.prebuilt import ToolNode
 from langgraph.graph import END, START, StateGraph, MessagesState
+from langgraph.checkpoint.memory import MemorySaver
 from typing import Literal
 
 load_dotenv()
@@ -51,7 +52,9 @@ workflow.add_conditional_edges(
 
 workflow.add_edge("tools", 'agent')
 
-graph = workflow.compile()
+checkpointer = MemorySaver()
+
+graph = workflow.compile(checkpointer=checkpointer)
 
 
 @app.route('/response', methods=["GET", "POST"])
@@ -59,15 +62,17 @@ def response():
     """
     current request body:
     {
-        "user_input" : "..."
+        "user_input" : "...",
+        "user_id" : "..."
     }
     """
 
     data = request.get_json()
     query = data.get("user_input")
-    log(f"query data: {data},user_input:{query}.")
+    user_id = data.get("user_id")
+    log(f"query data: {data},user_input:{query},user_id:{user_id}.")
     inputs = {"messages": [("user", query)]}
-    query_response = graph.invoke(inputs)
+    query_response = graph.invoke(inputs,config={"configurable": {"thread_id": user_id}})
     log(f"Agent response is {query_response}.")
     rsp = query_response["messages"][-1].content
     res_completion = {
