@@ -63,16 +63,14 @@ def response():
     current request body:
     {
         "user_input" : "...",
-        "user_id" : "..."
+        "thread_id" : "..."
     }
     """
 
     data = request.get_json()
     query = data.get("user_input")
-    user_id = data.get("user_id")
-    current_date = datetime.datetime.now().strftime('%Y-%m-%d')
-    thread_id = user_id + "-" + current_date
-    log(f"query data: {data},user_input:{query},user_id:{user_id},thread_id:{thread_id}.")
+    thread_id = data.get("thread_id")
+    log(f"query data: {data},user_input:{query},thread_id:{thread_id}.")
     inputs = {"messages": [("user", query)]}
     query_response = graph.invoke(inputs,config={"configurable": {"thread_id": thread_id}})
     log(f"Agent response is {query_response}.")
