@@ -70,9 +70,11 @@ def response():
     data = request.get_json()
     query = data.get("user_input")
     user_id = data.get("user_id")
-    log(f"query data: {data},user_input:{query},user_id:{user_id}.")
+    current_date = datetime.datetime.now().strftime('%Y-%m-%d')
+    thread_id = user_id + "-" + current_date
+    log(f"query data: {data},user_input:{query},user_id:{user_id},thread_id:{thread_id}.")
     inputs = {"messages": [("user", query)]}
-    query_response = graph.invoke(inputs,config={"configurable": {"thread_id": user_id}})
+    query_response = graph.invoke(inputs,config={"configurable": {"thread_id": thread_id}})
     log(f"Agent response is {query_response}.")
     rsp = query_response["messages"][-1].content
     res_completion = {
