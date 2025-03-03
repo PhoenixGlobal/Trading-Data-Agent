@@ -157,7 +157,7 @@ def get_coin_supply_info(crypto_symbol: str):
 
 
 def get_coin_historical_periods_price(crypto_symbol: str, time_window: str):
-    """Get the price of a cryptocurrency for the past 7 days, past 30 days, or past 24 hours.
+    """Get the price and trading volume of a cryptocurrency for the past 7 days, past 30 days, or past 24 hours.
 
     Args:
         crypto_symbol: the cryptocurrency symbol, such as BTC, ETH, or SOL.
@@ -184,17 +184,18 @@ def get_coin_historical_periods_price(crypto_symbol: str, time_window: str):
             for dat in data["klineDatas"]:
                 price_data = {
                     "price": dat["Price"],
+                    "volume": dat["Volume"],
                     "time": dat["Time"],
                 }
                 price_datas.append(price_data)
             json_arr = json.dumps(price_datas)
-            log(f"The price of {crypto_id} is {json_arr}.")
-            return f"The price of {crypto_id} is {json_arr}."
+            log(f"The price and trading volume of {crypto_id} is {json_arr}.")
+            return f"The price and trading volume of {crypto_id} is {json_arr}."
         else:
-            return f"Failed to retrieve the price of {crypto_id}."
+            return f"Failed to retrieve the price and trading volume of {crypto_id}."
     except:
-        log(f"Failed to retrieve the price of {crypto_id}.")
-        return f"Failed to retrieve the price of {crypto_id}."
+        log(f"Failed to retrieve the price and trading volume of {crypto_id}.")
+        return f"Failed to retrieve the price and trading volume of {crypto_id}."
 
 
 def get_coin_order_book(crypto_symbol: str):
