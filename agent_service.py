@@ -14,7 +14,7 @@ load_dotenv()
 app = Flask(__name__)
 
 tools = [get_coin_now_price, get_coin_historical_price, get_coin_market_cap, get_coin_supply_info,
-         get_coin_historical_periods_price, get_coin_order_book]
+         get_coin_historical_periods_price, get_coin_order_book, get_coin_rsi]
 
 tool_node = ToolNode(tools)
 

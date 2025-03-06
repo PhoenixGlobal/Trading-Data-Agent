@@ -230,3 +230,47 @@ def get_coin_order_book(crypto_symbol: str):
     except:
         log(f"Failed to retrieve the order book of {crypto_id}.")
         return f"Failed to retrieve the order book of {crypto_id}."
+
+def get_coin_rsi(crypto_symbol: str, time_span: str, time_window: str):
+    """Get the RSI indicator of a cryptocurrency over a period measured in hours or days.
+
+    Args:
+        crypto_symbol: the cryptocurrency symbol, such as BTC, ETH, or SOL.
+        time_span: The time span,it can only be day or hour. When specifying multiple days or hours, the time span parameter should be "day" and "hour" respectively.
+        time_window: The time window parameter can only be a numeric value, representing a certain number of days or hours, and it works together with the time_span parameter. For example, if the duration is in hours or days, the time window parameter is a numerical value, while the time_span parameter specifies "hour" or "day".
+
+    """
+
+    crypto_id = crypto_symbol.upper()
+    historical_price_url = "https://phoenix.global/agent/api/crypto/rsi"
+
+    headers = {
+        "accept": "application/json",
+        "Token": the_token
+    }
+
+    log(f"The time_span is {time_span}, the time_window is {time_window}")
+    params = {
+        "symbol": crypto_id,
+        "timespan": time_span,
+        "timeWindow": time_window
+    }
+    try:
+        response = requests.get(historical_price_url, headers=headers, params=params)
+        data = response.json()
+        if data['code'] == 200:
+            rsi_datas = []
+            for dat in data["rsiData"]:
+                rsi_data = {
+                    "time": dat["Time"],
+                    "value": dat["Value"],
+                }
+                rsi_datas.append(rsi_data)
+            json_arr = json.dumps(rsi_datas)
+            log(f"The RSI indicator of {crypto_id} is {json_arr}.")
+            return f"The RSI indicator of {crypto_id} is {json_arr}."
+        else:
+            return f"Failed to retrieve the RSI indicator of {crypto_id}."
+    except:
+        log(f"Failed to retrieve the RSI indicator of {crypto_id}.")
+        return f"Failed to retrieve the RSI indicator of {crypto_id}."
