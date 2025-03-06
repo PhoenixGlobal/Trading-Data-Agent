@@ -24,13 +24,17 @@ def get_coin_now_price(crypto_symbol: str):
     timestamp = int((time.time() - 5) * 1000)
     timestamp_str = str(timestamp)
 
+    headers = {
+        "accept": "application/json",
+        "Token": the_token
+    }
     params = {
         "symbol": crypto_id,
         "time": timestamp_str
     }
     url = 'https://phoenix.global/agent/api/crypto/symbolPrice'
     try:
-        response = requests.get(url, params=params)
+        response = requests.get(url, headers=headers, params=params)
         data = response.json()
         if data['code'] == 200:
             log(f"The current price of {crypto_id} is {data['price']}.")
@@ -74,13 +78,17 @@ def get_coin_historical_price(crypto_symbol: str, time_str: str, date_str: str):
     timeArray = time.strptime(date_time_str, "%Y-%m-%d %H:%M:%S")
     timestamp = time.mktime(timeArray)
     timestamp_str = str(int(timestamp * 1000))
+    headers = {
+        "accept": "application/json",
+        "Token": the_token
+    }
     params = {
         "symbol": crypto_id,
         "time": timestamp_str
     }
     url = 'https://phoenix.global/agent/api/crypto/symbolPrice'
     try:
-        response = requests.get(url, params=params)
+        response = requests.get(url, headers=headers, params=params)
         data = response.json()
         if data['code'] == 200:
             log(f"The price of {crypto_id} is {data['price']}.")
@@ -230,6 +238,7 @@ def get_coin_order_book(crypto_symbol: str):
     except:
         log(f"Failed to retrieve the order book of {crypto_id}.")
         return f"Failed to retrieve the order book of {crypto_id}."
+
 
 def get_coin_rsi(crypto_symbol: str, time_span: str, time_window: str):
     """Get the RSI indicator of a cryptocurrency over a period measured in hours or days.
