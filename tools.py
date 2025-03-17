@@ -251,7 +251,7 @@ def get_coin_rsi(crypto_symbol: str, time_span: str, time_window: str):
     """
 
     crypto_id = crypto_symbol.upper()
-    historical_price_url = "https://phoenix.global/agent/api/crypto/rsi"
+    rsi_url = "https://phoenix.global/agent/api/crypto/rsi"
 
     headers = {
         "accept": "application/json",
@@ -265,7 +265,7 @@ def get_coin_rsi(crypto_symbol: str, time_span: str, time_window: str):
         "timeWindow": time_window
     }
     try:
-        response = requests.get(historical_price_url, headers=headers, params=params)
+        response = requests.get(rsi_url, headers=headers, params=params)
         data = response.json()
         if data['code'] == 200:
             rsi_datas = []
@@ -283,3 +283,42 @@ def get_coin_rsi(crypto_symbol: str, time_span: str, time_window: str):
     except:
         log(f"Failed to retrieve the RSI indicator of {crypto_id}.")
         return f"Failed to retrieve the RSI indicator of {crypto_id}."
+
+def get_holders(crypto_symbol: str, limit: str):
+    """Get holders of a cryptocurrency.For example, get the top 100 holders.
+
+    Args:
+        crypto_symbol: the cryptocurrency symbol, such as BTC, ETH, or SOL.
+        limit: The limit parameter represents the quantity. For example, when retrieving the top 100 holders, the limit is set to 100.
+
+    """
+
+    crypto_id = crypto_symbol.upper()
+    rsi_url = "https://phoenix.global/agent/api/crypto/holders"
+
+    headers = {
+        "accept": "application/json",
+        "Token": the_token
+    }
+
+    log(f"The crypto_symbol is {crypto_symbol}, the limit is {limit}")
+    params = {
+        "symbol": crypto_id,
+        "limit": limit
+    }
+    try:
+        response = requests.get(rsi_url, headers=headers, params=params)
+        data = response.json()
+        if data['code'] == 200:
+            holder_datas = []
+            amount = len(data["holdersData"])
+            for dat in data["holdersData"]:
+                holder_datas.append(dat)
+            json_arr = json.dumps(holder_datas)
+            log(f"The top {amount} holders of {crypto_id} are {json_arr}.")
+            return f"The top {amount} holders of {crypto_id} are {json_arr}."
+        else:
+            return f"Failed to retrieve the holders of {crypto_id}."
+    except:
+        log(f"Failed to retrieve the holders of {crypto_id}.")
+        return f"Failed to retrieve the holders of {crypto_id}."
