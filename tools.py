@@ -285,10 +285,10 @@ def get_coin_rsi(crypto_symbol: str, time_span: str, time_window: str):
         return f"Failed to retrieve the RSI indicator of {crypto_id}."
 
 def get_holders(crypto_symbol: str, limit: str):
-    """Get holders of a cryptocurrency.For example, get the top 100 holders.
+    """Get holders of a cryptocurrency.For example, get the top 100 holders. Only token holders can be queried; mainchain coins cannot be queried. For example, you can retrieve the top 100 holders of SHIB, but not the top 100 holders of BTC.
 
     Args:
-        crypto_symbol: the cryptocurrency symbol, such as BTC, ETH, or SOL.
+        crypto_symbol: the cryptocurrency symbol, such as SHIB, PEPE, or BONK.
         limit: The limit parameter represents the quantity. For example, when retrieving the top 100 holders, the limit is set to 100.
 
     """
