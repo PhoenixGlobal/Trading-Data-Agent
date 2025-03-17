@@ -289,7 +289,7 @@ def get_holders(crypto_symbol: str, limit: str):
 
     Args:
         crypto_symbol: the cryptocurrency symbol, such as SHIB, PEPE, or BONK.
-        limit: The limit parameter represents the quantity. For example, when retrieving the top 100 holders, the limit is set to 100.
+        limit: The limit parameter represents the quantity. For example, when retrieving the top 100 holders, the limit is set to 100. The maximum limit cannot exceed 200; if it exceeds 200, it will still be set to 200.
 
     """
 
@@ -313,7 +313,12 @@ def get_holders(crypto_symbol: str, limit: str):
             holder_datas = []
             amount = len(data["holdersData"])
             for dat in data["holdersData"]:
-                holder_datas.append(dat)
+                holder_data = {
+                    "holderAddress": dat["holderAddress"],
+                    "amount": dat["amount"],
+                    "rank": dat["rank"],
+                }
+                holder_datas.append(holder_data)
             json_arr = json.dumps(holder_datas)
             log(f"The top {amount} holders of {crypto_id} are {json_arr}.")
             return f"The top {amount} holders of {crypto_id} are {json_arr}."
