@@ -327,3 +327,46 @@ def get_holders(crypto_symbol: str, limit: str):
     except:
         log(f"Failed to retrieve the holders of {crypto_id}.")
         return f"Failed to retrieve the holders of {crypto_id}."
+
+def get_contract_holders(contract_address: str, limit: str):
+    """Get holders of a cryptocurrency based on the contract address.For example, get the top 100 holders.
+
+    Args:
+        contract_address: The contract address of a cryptocurrency.For example, SHIB's contract address is 0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce. Another example is WIF's contract address, which is EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm.
+        limit: The limit parameter represents the quantity. For example, when retrieving the top 100 holders, the limit is set to 100. The maximum limit cannot exceed 200; if it exceeds 200, it will still be set to 200.
+
+    """
+
+    rsi_url = "https://phoenix.global/agent/api/crypto/addressHolders"
+
+    headers = {
+        "accept": "application/json",
+        "Token": the_token
+    }
+
+    log(f"The contract_address is {contract_address}, the limit is {limit}")
+    params = {
+        "address": contract_address,
+        "limit": limit
+    }
+    try:
+        response = requests.get(rsi_url, headers=headers, params=params)
+        data = response.json()
+        if data['code'] == 200:
+            holder_datas = []
+            amount = len(data["holdersData"])
+            for dat in data["holdersData"]:
+                holder_data = {
+                    "holderAddress": dat["holderAddress"],
+                    "amount": dat["amount"],
+                    "rank": dat["rank"],
+                }
+                holder_datas.append(holder_data)
+            json_arr = json.dumps(holder_datas)
+            log(f"The top {amount} holders of {contract_address} are {json_arr}.")
+            return f"The top {amount} holders of {contract_address} are {json_arr}."
+        else:
+            return f"Failed to retrieve the holders of {contract_address}."
+    except:
+        log(f"Failed to retrieve the holders of {contract_address}.")
+        return f"Failed to retrieve the holders of {contract_address}."
