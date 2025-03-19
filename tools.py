@@ -294,7 +294,7 @@ def get_holders(crypto_symbol: str, limit: str):
     """
 
     crypto_id = crypto_symbol.upper()
-    rsi_url = "https://phoenix.global/agent/api/crypto/holders"
+    url = "https://phoenix.global/agent/api/crypto/holders"
 
     headers = {
         "accept": "application/json",
@@ -307,7 +307,7 @@ def get_holders(crypto_symbol: str, limit: str):
         "limit": limit
     }
     try:
-        response = requests.get(rsi_url, headers=headers, params=params)
+        response = requests.get(url, headers=headers, params=params)
         data = response.json()
         if data['code'] == 200:
             holder_datas = []
@@ -317,6 +317,7 @@ def get_holders(crypto_symbol: str, limit: str):
                     "holderAddress": dat["holderAddress"],
                     "amount": dat["amount"],
                     "rank": dat["rank"],
+                    "valueUsd": dat["valueUsd"],
                 }
                 holder_datas.append(holder_data)
             json_arr = json.dumps(holder_datas)
@@ -337,7 +338,7 @@ def get_contract_holders(contract_address: str, limit: str):
 
     """
 
-    rsi_url = "https://phoenix.global/agent/api/crypto/addressHolders"
+    url = "https://phoenix.global/agent/api/crypto/addressHolders"
 
     headers = {
         "accept": "application/json",
@@ -350,7 +351,7 @@ def get_contract_holders(contract_address: str, limit: str):
         "limit": limit
     }
     try:
-        response = requests.get(rsi_url, headers=headers, params=params)
+        response = requests.get(url, headers=headers, params=params)
         data = response.json()
         if data['code'] == 200:
             holder_datas = []
@@ -360,6 +361,7 @@ def get_contract_holders(contract_address: str, limit: str):
                     "holderAddress": dat["holderAddress"],
                     "amount": dat["amount"],
                     "rank": dat["rank"],
+                    "valueUsd": dat["valueUsd"],
                 }
                 holder_datas.append(holder_data)
             json_arr = json.dumps(holder_datas)
@@ -372,14 +374,14 @@ def get_contract_holders(contract_address: str, limit: str):
         return f"Failed to retrieve the holders of {contract_address}."
 
 def get_contract_token_info(contract_address: str):
-    """Get the token information based on its contract address and return details such as the token's name, symbol, total supply, market capitalization, price, etc.
+    """Get the token information based on its contract address and return details such as the token's name, symbol, precision, protocolType, total number of holders, total supply, circulating supply, market capitalization, price, etc.
 
     Args:
         contract_address: The contract address of a cryptocurrency.For example, SHIB's contract address is 0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce. Another example is WIF's contract address, which is EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm.
 
     """
 
-    rsi_url = "https://phoenix.global/agent/api/crypto/tokenInfoByAddress"
+    url = "https://phoenix.global/agent/api/crypto/tokenInfoByAddress"
 
     headers = {
         "accept": "application/json",
@@ -391,7 +393,7 @@ def get_contract_token_info(contract_address: str):
         "address": contract_address
     }
     try:
-        response = requests.get(rsi_url, headers=headers, params=params)
+        response = requests.get(url, headers=headers, params=params)
         data = response.json()
         if data['code'] == 200:
             json_arr = json.dumps(data["tokenData"])
@@ -402,3 +404,35 @@ def get_contract_token_info(contract_address: str):
     except:
         log(f"Failed to retrieve the token information of {contract_address}.")
         return f"Failed to retrieve the token information of {contract_address}."
+
+def get_coin_info(crypto_symbol: str):
+    """Get a cryptocurrency's information based on its symbol and return details such as the cryptocurrency's name, contract address, and the blockchain it is on.
+
+    Args:
+        crypto_symbol: the cryptocurrency symbol, such as BTC, ETH, or SOL.
+    """
+
+    crypto_id = crypto_symbol.upper()
+    url = "https://phoenix.global/agent/api/crypto/coinInfo"
+    headers = {
+        "accept": "application/json",
+        "Token": the_token
+    }
+
+    params = {
+        "symbol": crypto_id,
+    }
+
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        data = response.json()
+        if data['code'] == 200:
+            json_arr = json.dumps(data["coinData"])
+            log(f"The information of {crypto_id} is {json_arr}.")
+            return f"The information of {crypto_id} is {json_arr}."
+        else:
+            log(f"Failed to retrieve the information of {crypto_id}.")
+            return f"Failed to retrieve the information of {crypto_id}."
+    except:
+        log(f"Failed to retrieve the information of {crypto_id}.")
+        return f"Failed to retrieve the information of {crypto_id}."
