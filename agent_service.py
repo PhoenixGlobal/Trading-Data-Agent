@@ -12,7 +12,7 @@ import os
 
 load_dotenv()
 
-port = os.environ.getenv("PORT")
+port = os.environ.get("PORT")
 app = Flask(__name__)
 
 tools = [get_coin_now_price, get_coin_historical_price, get_coin_market_cap, get_coin_supply_info,
