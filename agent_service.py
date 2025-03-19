@@ -8,9 +8,11 @@ from langgraph.prebuilt import ToolNode
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.checkpoint.memory import MemorySaver
 from typing import Literal
+import os
 
 load_dotenv()
 
+port = os.environ.getenv("PORT")
 app = Flask(__name__)
 
 tools = [get_coin_now_price, get_coin_historical_price, get_coin_market_cap, get_coin_supply_info,
@@ -85,4 +87,4 @@ def response():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5011)
+    app.run(host='0.0.0.0', port=port)
