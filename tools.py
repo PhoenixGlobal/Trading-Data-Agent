@@ -370,3 +370,35 @@ def get_contract_holders(contract_address: str, limit: str):
     except:
         log(f"Failed to retrieve the holders of {contract_address}.")
         return f"Failed to retrieve the holders of {contract_address}."
+
+def get_contract_token_info(contract_address: str):
+    """Get the token information based on its contract address and return details such as the token's name, symbol, total supply, market capitalization, price, etc.
+
+    Args:
+        contract_address: The contract address of a cryptocurrency.For example, SHIB's contract address is 0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce. Another example is WIF's contract address, which is EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm.
+
+    """
+
+    rsi_url = "https://phoenix.global/agent/api/crypto/tokenInfoByAddress"
+
+    headers = {
+        "accept": "application/json",
+        "Token": the_token
+    }
+
+    log(f"The contract_address is {contract_address}.")
+    params = {
+        "address": contract_address
+    }
+    try:
+        response = requests.get(rsi_url, headers=headers, params=params)
+        data = response.json()
+        if data['code'] == 200:
+            json_arr = json.dumps(data["tokenData"])
+            log(f"The token information of {contract_address} is {json_arr}.")
+            return f"The token information of {contract_address} is {json_arr}."
+        else:
+            return f"Failed to retrieve the token information of {contract_address}."
+    except:
+        log(f"Failed to retrieve the token information of {contract_address}.")
+        return f"Failed to retrieve the token information of {contract_address}."
