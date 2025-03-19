@@ -374,7 +374,7 @@ def get_contract_holders(contract_address: str, limit: str):
         return f"Failed to retrieve the holders of {contract_address}."
 
 def get_contract_token_info(contract_address: str):
-    """Get the token information based on its contract address and return details such as the token's name, symbol, precision(decimals), protocol type, total number of holders, total supply, circulating supply, market capitalization, price, etc.
+    """Get the token information based on its contract address and return details such as the token's name, symbol, precision(decimals), protocol type(token standard, such as ERC-20), total number of holders, total supply, circulating supply, market capitalization, price, etc.
 
     Args:
         contract_address: The contract address of a cryptocurrency.For example, SHIB's contract address is 0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce. Another example is WIF's contract address, which is EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm.
