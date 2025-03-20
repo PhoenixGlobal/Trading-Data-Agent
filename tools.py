@@ -428,12 +428,8 @@ def get_coin_info(crypto_symbol: str):
         data = response.json()
         if data['code'] == 200:
             json_arr = json.dumps(data["coinData"])
-            if len(data["coinData"]["contractAddresses"])>1:
-                retMsg = "The cryptocurrency has multiple contract addresses distributed across different blockchains."
-            else:
-                retMsg = ""
-            log(f"{retMsg}The information of {crypto_id} is {json_arr}.")
-            return f"{retMsg}The information of {crypto_id} is {json_arr}."
+            log(f"The information of {crypto_id} is {json_arr}.")
+            return f"The information of {crypto_id} is {json_arr}."
         else:
             log(f"Failed to retrieve the information of {crypto_id}.")
             return f"Failed to retrieve the information of {crypto_id}."
