@@ -406,7 +406,7 @@ def get_contract_token_info(contract_address: str):
         return f"Failed to retrieve the token information of {contract_address}."
 
 def get_coin_info(crypto_symbol: str):
-    """Get a cryptocurrency's information based on its symbol and return details such as the cryptocurrency's name, contract address, and the blockchain it is on.
+    """Get a cryptocurrency's information based on its symbol and return details such as the cryptocurrency's name, description, contract address, and the blockchain it is on. Some cryptocurrencies may have multiple contract addresses on different blockchains.
 
     Args:
         crypto_symbol: the cryptocurrency symbol, such as BTC, ETH, or SOL.
@@ -428,8 +428,12 @@ def get_coin_info(crypto_symbol: str):
         data = response.json()
         if data['code'] == 200:
             json_arr = json.dumps(data["coinData"])
-            log(f"The information of {crypto_id} is {json_arr}.")
-            return f"The information of {crypto_id} is {json_arr}."
+            if len(data["coinData"]["contractAddresses"])>1:
+                retMsg = "The cryptocurrency has multiple contract addresses distributed across different blockchains."
+            else:
+                retMsg = ""
+            log(f"{retMsg}The information of {crypto_id} is {json_arr}.")
+            return f"{retMsg}The information of {crypto_id} is {json_arr}."
         else:
             log(f"Failed to retrieve the information of {crypto_id}.")
             return f"Failed to retrieve the information of {crypto_id}."
