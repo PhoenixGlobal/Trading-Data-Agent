@@ -436,3 +436,35 @@ def get_coin_info(crypto_symbol: str):
     except:
         log(f"Failed to retrieve the information of {crypto_id}.")
         return f"Failed to retrieve the information of {crypto_id}."
+
+def get_dex_pool_info(contract_address: str):
+    """Get DEX pool information based on the token's contract address and return details about DEX pool pairs, such as the blockchain it is on, URL, pair contract address, the two tokens in the pair, price, number of trades (buy and sell counts), trading volume, price changes, liquidity (amount of tokens in the pool and their USD value), FDV, and other relevant data. Multiple pairs may be returned.
+
+    Args:
+        contract_address: The contract address of a cryptocurrency.For example, SHIB's contract address is 0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce. Another example is WIF's contract address, which is EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm.
+
+    """
+
+    url = "https://phoenix.global/agent/api/crypto/dexPoolInfo"
+
+    headers = {
+        "accept": "application/json",
+        "Token": the_token
+    }
+
+    log(f"The contract_address is {contract_address}.")
+    params = {
+        "address": contract_address
+    }
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        data = response.json()
+        if data['code'] == 200:
+            json_arr = json.dumps(data["dexPairs"])
+            log(f"The DEX pool pairs information of {contract_address} are {json_arr}.")
+            return f"The DEX pool pairs information of {contract_address} are {json_arr}."
+        else:
+            return f"Failed to retrieve the DEX pool pairs information of {contract_address}."
+    except:
+        log(f"Failed to retrieve the DEX pool pairs information of {contract_address}.")
+        return f"Failed to retrieve the DEX pool pairs information of {contract_address}."
