@@ -285,7 +285,7 @@ def get_coin_rsi(crypto_symbol: str, time_span: str, time_window: str):
         return f"Failed to retrieve the RSI indicator of {crypto_id}."
 
 def get_holders(crypto_symbol: str, limit: str):
-    """Get holders of a cryptocurrency.For example, get the top 100 holders. Only token holders can be queried; mainchain coins cannot be queried. For example, you can retrieve the top 100 holders of SHIB, but not the top 100 holders of BTC.
+    """Get holders of a cryptocurrency.For example, get the top 100 holders. Currently, querying holders of tokens on the Solana chain is not supported.
 
     Args:
         crypto_symbol: the cryptocurrency symbol, such as SHIB, PEPE, or BONK.
@@ -330,10 +330,10 @@ def get_holders(crypto_symbol: str, limit: str):
         return f"Failed to retrieve the holders of {crypto_id}."
 
 def get_contract_holders(contract_address: str, limit: str):
-    """Get holders of a cryptocurrency based on the contract address.For example, get the top 100 holders.
+    """Get holders of a cryptocurrency based on the contract address.For example, get the top 100 holders. Currently, querying holders of tokens on the Solana chain is not supported.
 
     Args:
-        contract_address: The contract address of a cryptocurrency.For example, SHIB's contract address is 0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce. Another example is WIF's contract address, which is EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm.
+        contract_address: The contract address of a cryptocurrency.For example, SHIB's contract address is 0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce.
         limit: The limit parameter represents the quantity. For example, when retrieving the top 100 holders, the limit is set to 100. The maximum limit cannot exceed 200; if it exceeds 200, it will still be set to 200.
 
     """
@@ -468,3 +468,37 @@ def get_dex_pool_info(contract_address: str):
     except:
         log(f"Failed to retrieve the DEX pool pairs information of {contract_address}.")
         return f"Failed to retrieve the DEX pool pairs information of {contract_address}."
+
+def get_address_summary(address: str, chain_name: str):
+    """Get an overview of a specific address and return the following information: whether it is a contract address, whether it is a token (if so, return the token's symbol), the native token symbol of the chain (balanceSymbol) and its balance (balance), the total number of transactions (transactionCount), the total amount of balanceSymbol sent (sendAmount), the total amount of balanceSymbol received (receiveAmount), the total number of different token types held (tokenAmount), and the total value of these tokens in balanceSymbol (totalTokenValue).
+
+    Args:
+        address: Blockchain address, such as 0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce.
+        chain_name:The short name of the chain can only be one of the following values: btc, eth, bsc, solana, etc, dash, op, bch, tron, ltc, avaxc, apt, polygon, doge, arbitrum, kaia, zksync, sui, ronin, opbnb, base, ftm, cosmos, kava. Other chains are not supported. The chain name should be converted to its corresponding abbreviation, such as converting BNB Chain to bsc, Ethereum to eth, Bitcoin to btc, Solana to solana, Avalanche to avaxc, and BASE to base.
+
+    """
+
+    url = "https://phoenix.global/agent/api/crypto/addressSummary"
+
+    headers = {
+        "accept": "application/json",
+        "Token": the_token
+    }
+
+    log(f"The address is {address}.")
+    params = {
+        "address": address,
+        "chainShortName": chain_name
+    }
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        data = response.json()
+        if data['code'] == 200:
+            json_arr = json.dumps(data["summary"])
+            log(f"The sum information of {address} are {json_arr}.")
+            return f"The summary information of {address} are {json_arr}."
+        else:
+            return f"Failed to retrieve the summary information of {address}."
+    except:
+        log(f"Failed to retrieve the summary information of {address}.")
+        return f"Failed to retrieve the summary information of {address}."
