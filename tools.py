@@ -470,7 +470,7 @@ def get_dex_pool_info(contract_address: str):
         return f"Failed to retrieve the DEX pool pairs information of {contract_address}."
 
 def get_address_summary(address: str, chain_name: str):
-    """Get an overview of a specific address and return the following information: whether it is a contract address, whether it is a token (if so, return the token's symbol), the native token symbol of the chain (balanceSymbol) and its balance (balance), the total number of transactions (transactionCount), the total amount of balanceSymbol sent (sendAmount), the total amount of balanceSymbol received (receiveAmount), the total number of different token types held (tokenAmount), and the total value of these tokens in balanceSymbol (totalTokenValue).
+    """Get an overview of a specific address, returning whether it is a contract address, whether it is a token (if so, return the token's symbol), the symbol (balanceSymbol) and balance (balance) of the native currency on the chain, the total number of transactions (transactionCount), the total amount of balanceSymbol sent (sendAmount), the total amount of balanceSymbol received (receiveAmount), the total number of different token types held (tokenAmount), and the total value of these tokens in terms of balanceSymbol (totalTokenValue).
 
     Args:
         address: Blockchain address, such as 0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce.
@@ -495,7 +495,7 @@ def get_address_summary(address: str, chain_name: str):
         data = response.json()
         if data['code'] == 200:
             json_arr = json.dumps(data["summary"])
-            log(f"The sum information of {address} are {json_arr}.")
+            log(f"The summary information of {address} are {json_arr}.")
             return f"The summary information of {address} are {json_arr}."
         else:
             return f"Failed to retrieve the summary information of {address}."
