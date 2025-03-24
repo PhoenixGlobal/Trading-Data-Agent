@@ -502,3 +502,73 @@ def get_address_summary(address: str, chain_name: str):
     except:
         log(f"Failed to retrieve the summary information of {address}.")
         return f"Failed to retrieve the summary information of {address}."
+
+def get_address_tokens(address: str, chain_name: str):
+    """Query which tokens a specific blockchain address holds and return the token symbol, contract address, balance, token price, and token value (in USD). A maximum of 50 tokens will be returned, even if the address holds more than 50 tokens.
+
+    Args:
+        address: Blockchain address, such as 0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce.
+        chain_name:The short name of the chain can only be one of the following values: btc, eth, bsc, solana, etc, dash, op, bch, tron, ltc, avaxc, apt, polygon, doge, arbitrum, kaia, zksync, sui, ronin, opbnb, base, ftm, cosmos, kava. Other chains are not supported. The chain name should be converted to its corresponding abbreviation, such as converting BNB Chain to bsc, Ethereum to eth, Bitcoin to btc, Solana to solana, Avalanche to avaxc, and BASE to base.
+
+    """
+
+    url = "https://phoenix.global/agent/api/crypto/addressTokens"
+
+    headers = {
+        "accept": "application/json",
+        "Token": the_token
+    }
+
+    log(f"The address is {address}.")
+    params = {
+        "address": address,
+        "chainShortName": chain_name
+    }
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        data = response.json()
+        if data['code'] == 200:
+            json_arr = json.dumps(data["tokenList"])
+            log(f"The token list of {address} are {json_arr}.")
+            return f"The token list of {address} are {json_arr}."
+        else:
+            return f"Failed to retrieve the token list of {address}."
+    except:
+        log(f"Failed to retrieve the token list of {address}.")
+        return f"Failed to retrieve the token list of {address}."
+
+def get_address_token(address: str, chain_name: str,token_contract_address: str):
+    """Query the holdings of a specific blockchain address for a specific token and return the token symbol, contract address, balance, token price, and token value (in USD).
+
+    Args:
+        address: Blockchain address, such as 0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce.
+        chain_name:The short name of the chain can only be one of the following values: btc, eth, bsc, solana, etc, dash, op, bch, tron, ltc, avaxc, apt, polygon, doge, arbitrum, kaia, zksync, sui, ronin, opbnb, base, ftm, cosmos, kava. Other chains are not supported. The chain name should be converted to its corresponding abbreviation, such as converting BNB Chain to bsc, Ethereum to eth, Bitcoin to btc, Solana to solana, Avalanche to avaxc, and BASE to base.
+        token_contract_address: The contract address of a token.For example, SHIB's contract address is 0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce.
+
+    """
+
+    url = "https://phoenix.global/agent/api/crypto/addressToken"
+
+    headers = {
+        "accept": "application/json",
+        "Token": the_token
+    }
+
+    log(f"The address is {address}, the token_contract_address is {token_contract_address}.")
+    params = {
+        "address": address,
+        "chainShortName": chain_name,
+        "tokenContractAddress": token_contract_address
+    }
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        data = response.json()
+        if data['code'] == 200:
+            json_arr = json.dumps(data["tokenList"])
+            log(f"The holdings of address {address} for token {token_contract_address} are are {json_arr}.")
+            return f"The holdings of address {address} for token {token_contract_address} are are {json_arr}."
+        else:
+            return f"Failed to retrieve the holdings of address {address} for token {token_contract_address}."
+    except:
+        log(f"Failed to retrieve the holdings of address {address} for token {token_contract_address}.")
+        return f"Failed to retrieve the holdings of address {address} for token {token_contract_address}."
