@@ -537,12 +537,13 @@ def get_address_tokens(address: str, chain_name: str):
         log(f"Failed to retrieve the token list of {address}.")
         return f"Failed to retrieve the token list of {address}."
 
-def get_address_token(address: str, chain_name: str,token_contract_address: str):
+def get_address_token(address: str, chain_name: str,token_contract_address: str,crypto_symbol: str):
     """Query the holdings of a specific blockchain address for a specific token. The token's contract address is required—if only the token symbol is provided, call the get_coin_info method to retrieve the contract address based on the symbol first. Return the token symbol, contract address, balance, token price, and token value (in USD).
 
     Args:
         address: Blockchain address, such as 0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce.
         chain_name:The short name of the chain can only be one of the following values: btc, eth, bsc, solana, etc, dash, op, bch, tron, ltc, avaxc, apt, polygon, doge, arbitrum, kaia, zksync, sui, ronin, opbnb, base, ftm, cosmos, kava. Other chains are not supported. The chain name should be converted to its corresponding abbreviation, such as converting BNB Chain to bsc, Ethereum to eth, Bitcoin to btc, Solana to solana, Avalanche to avaxc, and BASE to base.
+        crypto_symbol: the token symbol, such as BTC, ETH, or SOL.
         token_contract_address: The contract address of a token.For example, SHIB's contract address is 0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce.
 
     """
@@ -554,7 +555,7 @@ def get_address_token(address: str, chain_name: str,token_contract_address: str)
         "Token": the_token
     }
 
-    log(f"The address is {address}, the token_contract_address is {token_contract_address}.")
+    log(f"The address is {address}, the token_contract_address is {token_contract_address}, the crypto_symbol is {crypto_symbol}.")
     params = {
         "address": address,
         "chainShortName": chain_name,
