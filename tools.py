@@ -538,7 +538,7 @@ def get_address_tokens(address: str, chain_name: str):
         return f"Failed to retrieve the token list of {address}."
 
 def get_address_token(address: str, chain_name: str,token_contract_address: str):
-    """Query the holdings of a specific blockchain address for a specific token. The token's contract address is required—if only the token symbol is provided, retrieve the contract address based on the symbol first. Return the token symbol, contract address, balance, token price, and token value (in USD).
+    """Query the holdings of a specific blockchain address for a specific token. The token's contract address is required—if only the token symbol is provided, call the get_coin_info method to retrieve the contract address based on the symbol first. Return the token symbol, contract address, balance, token price, and token value (in USD).
 
     Args:
         address: Blockchain address, such as 0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce.
