@@ -18,7 +18,7 @@ app = Flask(__name__)
 tools = [get_coin_now_price, get_coin_historical_price, get_coin_market_cap, get_coin_supply_info,
          get_coin_historical_periods_price, get_coin_order_book, get_coin_rsi, get_holders, get_contract_holders,
          get_contract_token_info, get_coin_info, get_dex_pool_info, get_address_summary, get_address_tokens,
-         get_address_token]
+         get_address_token, get_coin_historical_price_change]
 
 tool_node = ToolNode(tools)
 

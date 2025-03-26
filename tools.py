@@ -572,3 +572,35 @@ def get_address_token(address: str, chain_name: str,token_contract_address: str)
     except:
         log(f"Failed to retrieve the holdings of address {address} for token {token_contract_address}.")
         return f"Failed to retrieve the holdings of address {address} for token {token_contract_address}."
+
+def get_coin_historical_price_change(crypto_symbol: str):
+    """Get the percentage price change of a cryptocurrency over the past 24 hours, 7 days, and 30 days.
+
+    Args:
+        crypto_symbol: the cryptocurrency symbol, such as BTC, ETH, or SOL.
+
+    """
+
+    crypto_id = crypto_symbol.upper()
+    url = "https://phoenix.global/agent/api/crypto/priceChange"
+
+    headers = {
+        "accept": "application/json",
+        "Token": the_token
+    }
+
+    params = {
+        "symbol": crypto_id
+    }
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        data = response.json()
+        if data['code'] == 200:
+            json_arr = json.dumps(data['priceChangeData'])
+            log(f"The percentage price change of {crypto_id} is {json_arr}.")
+            return f"The percentage price change of {crypto_id} is {json_arr}."
+        else:
+            return f"Failed to retrieve the percentage price change of {crypto_id}."
+    except:
+        log(f"Failed to retrieve the percentage price change of {crypto_id}.")
+        return f"Failed to retrieve the percentage price change of {crypto_id}."
