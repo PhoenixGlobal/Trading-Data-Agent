@@ -604,3 +604,75 @@ def get_coin_historical_price_change(crypto_symbol: str):
     except:
         log(f"Failed to retrieve the percentage price change of {crypto_id}.")
         return f"Failed to retrieve the percentage price change of {crypto_id}."
+
+
+def get_coin_macd(crypto_symbol: str, days: str):
+    """Get the MACD indicator of a cryptocurrency over a period measured in days.
+
+    Args:
+        crypto_symbol: the cryptocurrency symbol, such as BTC, ETH, or SOL.
+        days: indicates the number of days; defaults to 30 if left empty.
+
+    """
+
+    crypto_id = crypto_symbol.upper()
+    url = "https://phoenix.global/agent/api/crypto/macd"
+
+    headers = {
+        "accept": "application/json",
+        "Token": the_token
+    }
+
+    log(f"The days is {days}.")
+    params = {
+        "symbol": crypto_id,
+        "days": days
+    }
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        data = response.json()
+        if data['code'] == 200:
+            json_arr = json.dumps(data["macdData"])
+            log(f"The MACD indicator of {crypto_id} is {json_arr}.")
+            return f"The MACD indicator of {crypto_id} is {json_arr}."
+        else:
+            return f"Failed to retrieve the MACD indicator of {crypto_id}."
+    except:
+        log(f"Failed to retrieve the MACD indicator of {crypto_id}.")
+        return f"Failed to retrieve the MACD indicator of {crypto_id}."
+
+
+def get_coin_kdj(crypto_symbol: str, days: str):
+    """Get the KDJ indicator of a cryptocurrency over a period measured in days.
+
+    Args:
+        crypto_symbol: the cryptocurrency symbol, such as BTC, ETH, or SOL.
+        days: indicates the number of days; defaults to 30 if left empty.
+
+    """
+
+    crypto_id = crypto_symbol.upper()
+    url = "https://phoenix.global/agent/api/crypto/kdj"
+
+    headers = {
+        "accept": "application/json",
+        "Token": the_token
+    }
+
+    log(f"The days is {days}.")
+    params = {
+        "symbol": crypto_id,
+        "days": days
+    }
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        data = response.json()
+        if data['code'] == 200:
+            json_arr = json.dumps(data["kdjData"])
+            log(f"The KDJ indicator of {crypto_id} is {json_arr}.")
+            return f"The KDJ indicator of {crypto_id} is {json_arr}."
+        else:
+            return f"Failed to retrieve the KDJ indicator of {crypto_id}."
+    except:
+        log(f"Failed to retrieve the KDJ indicator of {crypto_id}.")
+        return f"Failed to retrieve the KDJ indicator of {crypto_id}."
