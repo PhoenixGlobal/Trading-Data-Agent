@@ -676,3 +676,36 @@ def get_coin_kdj(crypto_symbol: str, days: str):
     except:
         log(f"Failed to retrieve the KDJ indicator of {crypto_id}.")
         return f"Failed to retrieve the KDJ indicator of {crypto_id}."
+
+
+def get_tokens_by_topic(topic: str):
+    """Get a list of popular tokens based on the topic. The valid values for the topic are: hot, meme, gainer, solana, new, bsc, loser, eth, base, depin, ai, l2, gamefi, rwa, arbitrum, blast, polygon, optimism, avalanche, merlin, BSC-Meme-Boost. If the topic is any other value, it must first be converted to one of these valid values.
+
+    Args:
+        topic: Currently trending topics, such as meme and AI.
+
+    """
+
+    url = "https://phoenix.global/agent/api/crypto/getTokenListByTopic"
+
+    headers = {
+        "accept": "application/json",
+        "Token": the_token
+    }
+
+    log(f"The topic is {topic}.")
+    params = {
+        "topic": topic
+    }
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        data = response.json()
+        if data['code'] == 200:
+            json_arr = json.dumps(data["data"])
+            log(f"The popular tokens based on the topic of {topic} are {json_arr}.")
+            return f"The popular tokens based on the topic of {topic} are {json_arr}."
+        else:
+            return f"Failed to retrieve the popular tokens based on the topic of {topic}."
+    except:
+        log(f"Failed to retrieve the popular tokens based on the topic of {topic}.")
+        return f"Failed to retrieve the popular tokens based on the topic of {topic}."
