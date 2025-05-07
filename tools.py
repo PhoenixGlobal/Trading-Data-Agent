@@ -679,7 +679,7 @@ def get_coin_kdj(crypto_symbol: str, days: str):
 
 
 def get_tokens_by_topic(topic: str):
-    """Get a list of popular tokens based on the topic. The valid values for the topic are: hot, meme, gainer, solana, new, bsc, loser, eth, base, depin, ai, l2, gamefi, rwa, arbitrum, blast, polygon, optimism, avalanche, merlin, BSC-Meme-Boost. If the topic is any other value, it must first be converted to one of these valid values.
+    """Get a list of popular tokens based on the topic. The valid values for the topic are: hot, meme, gainer, solana, new, bsc, loser, eth, base, depin, ai, l2, gamefi, rwa, arbitrum, blast, polygon, optimism, avalanche, merlin, BSC-Meme-Boost. If the topic is any other value, it must first be converted to one of these valid values. The returned token information includes: name, symbol, holders, chain, contract address (token), English description (intro_en), main trading pair address (main_pair), 24h price change (token_price_change_24h), and 24h trading volume in USD (token_tx_volume_usd_24h).
 
     Args:
         topic: Currently trending topics, such as meme and AI.
