@@ -709,3 +709,36 @@ def get_tokens_by_topic(topic: str):
     except:
         log(f"Failed to retrieve the popular tokens based on the topic of {topic}.")
         return f"Failed to retrieve the popular tokens based on the topic of {topic}."
+
+
+def search_x_by_keyword(keyword: str):
+    """Query tweets that mentioned based on the keyword.
+
+    Args:
+        keyword: keyword to search for.
+
+    """
+
+    url = "https://phoenix.global/agent/api/crypto/search"
+
+    headers = {
+        "accept": "application/json",
+        "Token": the_token
+    }
+
+    log(f"The keyword is {keyword}.")
+    params = {
+        "keyword": keyword
+    }
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        data = response.json()
+        if data['code'] == 200:
+            json_arr = json.dumps(data["data"])
+            log(f"The tweets based on the {keyword} are {json_arr}.")
+            return f"The tweets based on the {keyword} are {json_arr}."
+        else:
+            return f"Failed to retrieve the tweets based on the {keyword}."
+    except:
+        log(f"Failed to retrieve the tweets based on the {keyword}.")
+        return f"Failed to retrieve the tweets based on the {keyword}."
