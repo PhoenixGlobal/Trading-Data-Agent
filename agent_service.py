@@ -19,7 +19,7 @@ tools = [get_coin_now_price, get_coin_historical_price, get_coin_market_cap, get
          get_coin_historical_periods_price, get_coin_order_book, get_coin_rsi, get_holders, get_contract_holders,
          get_contract_token_info, get_coin_info, get_dex_pool_info, get_address_summary, get_address_tokens,
          get_address_token, get_coin_historical_price_change, get_coin_macd, get_coin_kdj, get_tokens_by_topic,
-         search_x_by_keyword]
+         search_x_by_keyword, get_coin_insights]
 
 tool_node = ToolNode(tools)
 

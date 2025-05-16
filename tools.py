@@ -742,3 +742,39 @@ def search_x_by_keyword(keyword: str):
     except:
         log(f"Failed to retrieve the tweets based on the {keyword}.")
         return f"Failed to retrieve the tweets based on the {keyword}."
+
+
+def get_coin_insights(crypto_symbol: str, days: str):
+    """Get the MAVOL (Moving Average Volume), MFI (Money Flow Index), MA (Moving Average), EMA (Exponential Moving Average), BOLL (Bollinger Bands), and SAR (Stop and Reverse) indicators of a cryptocurrency over a period measured in days.
+
+    Args:
+        crypto_symbol: the cryptocurrency symbol, such as BTC, ETH, or SOL.
+        days: indicates the number of days; defaults to 30 if left empty.
+
+    """
+
+    crypto_id = crypto_symbol.upper()
+    url = "https://phoenix.global/agent/api/crypto/insights"
+
+    headers = {
+        "accept": "application/json",
+        "Token": the_token
+    }
+
+    log(f"The days is {days}.")
+    params = {
+        "symbol": crypto_id,
+        "days": days
+    }
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        data = response.json()
+        if data['code'] == 200:
+            json_arr = json.dumps(data["Data"])
+            log(f"The indicators of {crypto_id} are {json_arr}.")
+            return f"The indicators of {crypto_id} are {json_arr}."
+        else:
+            return f"Failed to retrieve the indicators of {crypto_id}."
+    except:
+        log(f"Failed to retrieve the indicators of {crypto_id}.")
+        return f"Failed to retrieve the indicators of {crypto_id}."
