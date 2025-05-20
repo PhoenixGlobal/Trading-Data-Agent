@@ -745,7 +745,7 @@ def search_x_by_keyword(keyword: str):
 
 
 def get_coin_insights(crypto_symbol: str, days: str):
-    """Get the MAVOL (Moving Average Volume), MFI (Money Flow Index), MA (Moving Average), EMA (Exponential Moving Average), BOLL (Bollinger Bands), and SAR (Stop and Reverse) indicators of a cryptocurrency over a period measured in days.
+    """Get the MAVOL (Moving Average Volume), MFI (Money Flow Index), MA (Moving Average), EMA (Exponential Moving Average), BOLL (Bollinger Bands), SAR (Stop and Reverse), OBV (On-Balance Volume), and WR (Williams %R) indicators of a cryptocurrency over a period measured in days.
 
     Args:
         crypto_symbol: the cryptocurrency symbol, such as BTC, ETH, or SOL.
