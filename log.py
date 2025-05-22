@@ -25,7 +25,7 @@ formatter = logging.Formatter(
 handler.setFormatter(formatter)
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 
 
