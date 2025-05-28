@@ -14,10 +14,10 @@ load_dotenv()
 port = os.environ.get("PORT")
 app = Flask(__name__)
 
-model = ChatOpenAI(model="gpt-4o-mini")
+# model = ChatOpenAI(model="gpt-4o-mini")
 
 market_agent = create_react_agent(
-    model,
+    model=ChatOpenAI(model="gpt-4o-mini", max_retries=2),
     tools=[get_coin_now_price, get_coin_historical_price, get_coin_market_cap, get_coin_supply_info,get_coin_info,
            get_coin_historical_periods_price, get_coin_order_book, get_coin_rsi, get_coin_historical_price_change,
            get_coin_macd, get_coin_kdj, get_coin_insights],
@@ -28,7 +28,7 @@ market_agent = create_react_agent(
 )
 
 chain_agent = create_react_agent(
-    model,
+    model=ChatOpenAI(model="gpt-4o-mini", max_retries=2),
     tools=[get_holders, get_contract_holders,get_contract_token_info,get_dex_pool_info,
            get_address_summary, get_address_tokens,get_address_token,  get_tokens_by_topic],
     prompt="You are an agent that retrieves on-chain cryptocurrency data. You can obtain information such as holders, "
@@ -39,7 +39,7 @@ chain_agent = create_react_agent(
 )
 
 social_sentiment_agent = create_react_agent(
-    model,
+    model=ChatOpenAI(model="gpt-4o-mini", max_retries=2),
     tools=[search_x_by_keyword],
     prompt="You are an agent that retrieves public sentiment on cryptocurrency from social media. You can query tweets "
            "based on specific keywords.",
@@ -49,13 +49,14 @@ social_sentiment_agent = create_react_agent(
 check_pointer = MemorySaver()
 
 supervisor = create_supervisor(
-    model=model,
+    model=ChatOpenAI(model="gpt-4o-mini", max_retries=2),
     agents=[market_agent, chain_agent, social_sentiment_agent],
     prompt=(
         "You are a supervisor managing three agents:\n"
         "One agent responsible for cryptocurrency market data. Assign tasks related to cryptocurrency market data to this agent.\n"
         "One agent responsible for cryptocurrency on-chain data. Assign tasks related to cryptocurrency on-chain data to this agent.\n"
-        "One agent responsible for cryptocurrency social sentiment data. Assign tasks related to cryptocurrency social sentiment to this agent."
+        "One agent responsible for cryptocurrency social sentiment data. Assign tasks related to cryptocurrency social sentiment to this agent.\n"
+        "Do not do any work yourself. Your only job is to collect the results from the other agents and return them to the user."
     ),
     add_handoff_back_messages=True,
     output_mode="full_history",
