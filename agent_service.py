@@ -4,62 +4,64 @@ from flask import Flask, request
 from langchain_openai import ChatOpenAI
 from tools import *
 from dotenv import load_dotenv
-from langgraph.prebuilt import ToolNode
-from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.checkpoint.memory import MemorySaver
-from typing import Literal
+from langgraph.prebuilt import create_react_agent
 import os
+from langgraph_supervisor import create_supervisor
 
 load_dotenv()
 
 port = os.environ.get("PORT")
 app = Flask(__name__)
 
-tools = [get_coin_now_price, get_coin_historical_price, get_coin_market_cap, get_coin_supply_info,
-         get_coin_historical_periods_price, get_coin_order_book, get_coin_rsi, get_holders, get_contract_holders,
-         get_contract_token_info, get_coin_info, get_dex_pool_info, get_address_summary, get_address_tokens,
-         get_address_token, get_coin_historical_price_change, get_coin_macd, get_coin_kdj, get_tokens_by_topic,
-         search_x_by_keyword, get_coin_insights]
+model = ChatOpenAI(model="gpt-4o-mini")
 
-tool_node = ToolNode(tools)
-
-model = ChatOpenAI(model="gpt-4o-mini", max_retries=2).bind_tools(tools)
-
-
-def should_continue(state: MessagesState) -> Literal["tools", END]:
-    messages = state['messages']
-    last_message = messages[-1]
-    if last_message.tool_calls:
-        return "tools"
-    return END
-
-
-def call_model(state: MessagesState):
-    messages = state['messages']
-    model_response = model.invoke(messages)
-    # We return a list, because this will get added to the existing list
-    return {"messages": [model_response]}
-
-
-workflow = StateGraph(MessagesState)
-
-workflow.add_node("agent", call_model)
-workflow.add_node("tools", tool_node)
-
-workflow.add_edge(START, "agent")
-workflow.add_conditional_edges(
-    # First, we define the start node. We use `agent`.
-    # This means these are the edges taken after the `agent` node is called.
-    "agent",
-    # Next, we pass in the function that will determine which node is called next.
-    should_continue,
+market_agent = create_react_agent(
+    model,
+    tools=[get_coin_now_price, get_coin_historical_price, get_coin_market_cap, get_coin_supply_info,get_coin_info,
+           get_coin_historical_periods_price, get_coin_order_book, get_coin_rsi, get_coin_historical_price_change,
+           get_coin_macd, get_coin_kdj, get_coin_insights],
+    prompt="You are an agent that retrieves cryptocurrency market data. Based on the cryptocurrency symbol provided "
+           "by the user, such as BTC, ETH, or SOL, you can obtain information including price, market capitalization, "
+           "supply info, order book, basic details, and technical indicators.",
+    name="market_agent",
 )
 
-workflow.add_edge("tools", 'agent')
+chain_agent = create_react_agent(
+    model,
+    tools=[get_holders, get_contract_holders,get_contract_token_info,get_dex_pool_info,
+           get_address_summary, get_address_tokens,get_address_token,  get_tokens_by_topic],
+    prompt="You are an agent that retrieves on-chain cryptocurrency data. You can obtain information such as holders, "
+           "token details, DEX pool information, and blockchain address data — including the address overview, whether "
+           "it's a token contract or a regular address, and the tokens it holds. You can also fetch popular on-chain "
+           "tokens based on specific topics.",
+    name="chain_agent",
+)
 
-checkpointer = MemorySaver()
+social_sentiment_agent = create_react_agent(
+    model,
+    tools=[search_x_by_keyword],
+    prompt="You are an agent that retrieves public sentiment on cryptocurrency from social media. You can query tweets "
+           "based on specific keywords.",
+    name="social_sentiment_agent",
+)
 
-graph = workflow.compile(checkpointer=checkpointer)
+check_pointer = MemorySaver()
+
+supervisor = create_supervisor(
+    model=model,
+    agents=[market_agent, chain_agent, social_sentiment_agent],
+    prompt=(
+        "You are a supervisor managing three agents:\n"
+        "One agent responsible for cryptocurrency market data. Assign tasks related to cryptocurrency market data to this agent.\n"
+        "One agent responsible for cryptocurrency on-chain data. Assign tasks related to cryptocurrency on-chain data to this agent.\n"
+        "One agent responsible for cryptocurrency social sentiment data. Assign tasks related to cryptocurrency social sentiment to this agent."
+    ),
+    add_handoff_back_messages=True,
+    output_mode="full_history",
+).compile(checkpointer=check_pointer)
+
+graph = supervisor
 
 
 @app.route('/response', methods=["GET", "POST"])
