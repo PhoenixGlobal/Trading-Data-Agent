@@ -21,9 +21,8 @@ market_agent = create_react_agent(
     tools=[get_coin_now_price, get_coin_historical_price, get_coin_market_cap, get_coin_supply_info,get_coin_info,
            get_coin_historical_periods_price, get_coin_order_book, get_coin_rsi, get_coin_historical_price_change,
            get_coin_macd, get_coin_kdj, get_coin_insights],
-    prompt="You are an agent that retrieves cryptocurrency market data. Based on the cryptocurrency symbol provided "
-           "by the user, such as BTC, ETH, or SOL, you can obtain information including price, market capitalization, "
-           "supply info, order book, basic details, and technical indicators.",
+    prompt="You are an agent that retrieves cryptocurrency market data. You can obtain information including price, "
+           "market capitalization, supply info, order book, basic information, and some technical analysis indicators.",
     name="market_agent",
 )
 
@@ -52,11 +51,16 @@ supervisor = create_supervisor(
     model=ChatOpenAI(model="gpt-4o-mini", max_retries=2),
     agents=[market_agent, chain_agent, social_sentiment_agent],
     prompt=(
-        "You are a supervisor managing three agents:\n"
-        "One agent responsible for cryptocurrency market data. Assign tasks related to cryptocurrency market data to this agent.\n"
-        "One agent responsible for cryptocurrency on-chain data. Assign tasks related to cryptocurrency on-chain data to this agent.\n"
-        "One agent responsible for cryptocurrency social sentiment data. Assign tasks related to cryptocurrency social sentiment to this agent.\n"
-        "Do not do any work yourself. Your only job is to collect the results from the other agents and return them to the user."
+        "You are a supervisor managing three agents:"
+        "- One agent is responsible for cryptocurrency market data."
+        "- One agent is responsible for cryptocurrency on-chain data."
+        "- One agent is responsible for cryptocurrency social sentiment data."
+        "When the user asks a cryptocurrency-related question, break it down into sub-questions and assign each one "
+        "to the appropriate agent."
+        "When the user asks a general, non-cryptocurrency question, answer it yourself directly as a general-purpose "
+        "language model."
+        "Your job is to understand the user's intent, break it into suitable sub-tasks, assign each crypto-related task "
+        "to the corresponding agent, collect their responses, and return a unified answer to the user."
     ),
     add_handoff_back_messages=True,
     output_mode="full_history",
