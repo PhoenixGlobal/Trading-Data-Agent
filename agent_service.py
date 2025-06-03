@@ -76,8 +76,9 @@ def response():
     query = data.get("user_input")
     thread_id = data.get("thread_id")
     log(f"query data: {data},user_input:{query},thread_id:{thread_id}.")
-    inputs = {"messages": [("system", "You are an agent that retrieves cryptocurrency data. Please return the data "
-                                      "preferably in JSONC format to facilitate the user in generating charts."),
+    inputs = {"messages": [("system", "You are an agent that retrieves cryptocurrency data. If the data contains time-series values, "
+                                      "please return the data preferably in JSONC format to facilitate the user in generating charts. "
+                                      "The language of the returned results should match the user's input language."),
                            ("user", query)]}
     query_response = graph.invoke(inputs,config={"configurable": {"thread_id": thread_id}})
     log(f"Agent response is {query_response}.")
