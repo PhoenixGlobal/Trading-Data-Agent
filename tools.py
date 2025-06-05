@@ -719,7 +719,7 @@ def search_x_by_keyword(keyword: str):
 
     """
 
-    url = "https://phoenix.global/agent/api/crypto/search"
+    url = "https://phoenix.global/agent/api/crypto/advancedSearch"
 
     headers = {
         "accept": "application/json",
