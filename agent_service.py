@@ -80,7 +80,7 @@ def response():
 
         If the data includes time-series values:
         - You MUST return the data in valid JSONC format.
-        - You MAY omit some entries if the full dataset is too large, but must ensure each individual entry is complete and usable.
+        - You MAY omit some entries if the full dataset is too large, but you MUST ensure each individual time-series entry is complete and usable in JSONC format.
         - NEVER use comments like "// ..." to indicate omitted data, as this breaks JSONC structure.
         - The date format MUST follow the standard "2006-01-02".
         - The language of all returned results MUST match the user's input language.
