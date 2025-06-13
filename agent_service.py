@@ -75,8 +75,6 @@ def response():
     }
     """
 
-    # - If the full dataset is too large to return completely, you MUST NOT return any partial or truncated JSONC.
-    # - Instead, you MUST return only a plain text summary describing the presence and approximate size of the data.
     system_prompt = """
     You are an agent that retrieves cryptocurrency data.
 
