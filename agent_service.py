@@ -75,14 +75,21 @@ def response():
     }
     """
 
+    system_prompt = """
+        You are an agent that retrieves cryptocurrency data.
+
+        If the data includes time-series values:
+        - You MUST return the data in JSONC format, preferably.
+        - The data MUST be complete, with NO omissions and NO ellipses (e.g., do not use comments like "// ...").
+        - The date format MUST follow the standard "2006-01-02".
+        - The language of all returned results MUST match the user's input language.
+    """
+
     data = request.get_json()
     query = data.get("user_input")
     thread_id = data.get("thread_id")
     log(f"query data: {data},user_input:{query},thread_id:{thread_id}.")
-    inputs = {"messages": [("system", "You are an agent that retrieves cryptocurrency data. If the data includes time-series values, "
-                                      "please return it preferably in JSONC format, ensuring the data is complete without omissions, "
-                                      "and the date format should be standardized as '2006-01-02'. The language of the returned results "
-                                      "should match the user's input language."),
+    inputs = {"messages": [("system", system_prompt),
                            ("user", query)]}
     query_response = graph.invoke(inputs,config={"configurable": {"thread_id": thread_id}, "callbacks": [langfuse_handler]})
     log(f"Agent response is {query_response}.")
