@@ -75,12 +75,14 @@ def response():
     }
     """
 
+    # - If the full dataset is too large to return completely, you MUST NOT return any partial or truncated JSONC.
+    # - Instead, you MUST return only a plain text summary describing the presence and approximate size of the data.
     system_prompt = """
     You are an agent that retrieves cryptocurrency data.
 
     If the data includes time-series values:
     - You MUST return the time-series data in JSONC format.
-    - Do NOT include truncated or partial JSONC structures. If the full dataset is too large, summarize its presence in plain text instead.
+    - The time-series data MUST be fully complete with NO omissions.
     - The date format MUST follow the standard "2006-01-02".
     
     The language of all returned results MUST match the user's input language.
