@@ -81,12 +81,19 @@ def response():
         If the data includes time-series values:
         - You MUST return the time-series data in JSONC format.
         - You MAY omit some entries if the full dataset is too large, BUT:
-            - For the entries you do not omit, each time-series entry MUST be complete and in JSONC format.
+            - Always omit the oldest entries first when omitting.
+            - The newest data by date is more important than older data, so DO NOT omit the newest data by date.
             - You MUST NOT include any comment like "// ..." to indicate omission.
             - DO NOT insert ANY line with "// ..." or similar comment syntax — this will BREAK JSONC.
-            - The newest data by date is more important than older data, so DO NOT omit the newest data by date.
+        - For the entries you do not omit, each time-series entry MUST be complete and in JSONC format.
         - The date format MUST follow the standard "2006-01-02".
-        - The language of all returned results MUST match the user's input language.
+        - If there are multiple types of time-series values (e.g., MACD, KDJ, RSI, etc.):
+            - If the full output is too long, you MUST prioritize and fully output only ONE or A FEW time-series types in complete JSONC format.
+            - All other time-series types can be briefly summarized in natural language.
+            - NEVER include partial or incomplete JSONC entries for multiple types.
+            - Prioritize completeness and readability over trying to include all data.
+        
+        The language of all returned results MUST match the user's input language.
     """
 
     data = request.get_json()
