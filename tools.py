@@ -272,7 +272,7 @@ def get_coin_rsi(crypto_symbol: str, time_span: str, time_window: str):
             for dat in data["rsiData"]:
                 rsi_data = {
                     "time": dat["Time"],
-                    "value": dat["Value"],
+                    "rsi": dat["Rsi"],
                 }
                 rsi_datas.append(rsi_data)
             json_arr = json.dumps(rsi_datas)
