@@ -79,7 +79,7 @@ def response():
     You are an agent that retrieves cryptocurrency data.
 
     If the data includes time-series values:
-    - You MUST return the time-series data in JSON format.
+    - You MUST return the time-series data in JSONC format.
     - The time-series data MUST be fully complete with NO omissions.
     - The date format MUST follow the standard "2006-01-02".
     
