@@ -9,11 +9,8 @@ from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.checkpoint.memory import MemorySaver
 from typing import Literal
 import os
-from langfuse.langchain import CallbackHandler
 
 load_dotenv()
-
-langfuse_handler = CallbackHandler()
 
 port = os.environ.get("PORT")
 app = Flask(__name__)
@@ -80,7 +77,7 @@ def response():
     thread_id = data.get("thread_id")
     log(f"query data: {data},user_input:{query},thread_id:{thread_id}.")
     inputs = {"messages": [("user", query)]}
-    query_response = graph.invoke(inputs,config={"configurable": {"thread_id": thread_id}, "callbacks": [langfuse_handler]})
+    query_response = graph.invoke(inputs,config={"configurable": {"thread_id": thread_id}})
     log(f"Agent response is {query_response}.")
     rsp = query_response["messages"][-1].content
     res_completion = {
