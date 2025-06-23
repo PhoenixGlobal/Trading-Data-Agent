@@ -103,5 +103,43 @@ def response():
     return res_completion
 
 
+@app.route('/chat', methods=["GET", "POST"])
+def chat():
+    """
+    current request body:
+    {
+        "user_input" : [{"role":"user","content":"tell a joke"}]
+    }
+    """
+
+    system_prompt = """
+    You are an agent that retrieves cryptocurrency data.
+
+    If the data includes time-series values:
+    - You MUST return the time-series data in JSONC format.
+    - The time-series data MUST be fully complete with NO omissions.
+    - The date format MUST follow the standard "2006-01-02".
+
+    The language of all returned results MUST match the user's input language.
+    """
+
+    data = request.get_json()
+    query = data.get("user_input")
+    log(f"chat query data: {data},user_input:{query}.")
+    query.insert(0, {"role": "system", "content": system_prompt})
+    inputs = {"messages": query}
+    millis = int(time.time() * 1000)
+    thread_id = f"chat-{millis}"
+    query_response = graph.invoke(inputs, config={"configurable": {"thread_id": thread_id}, "callbacks": [langfuse_handler]})
+    log(f"Agent chat response is {query_response}.")
+    rsp = query_response["messages"][-1].content
+    res_completion = {
+        "query": query,
+        "text": rsp,
+        "created": datetime.datetime.now().timestamp(),
+    }
+    return res_completion
+
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=port)
