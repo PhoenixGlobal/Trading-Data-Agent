@@ -90,8 +90,8 @@ def response():
     query = data.get("user_input")
     thread_id = data.get("thread_id")
     log(f"query data: {data},user_input:{query},thread_id:{thread_id}.")
-    inputs = {"messages": [("system", system_prompt),
-                           ("user", query)]}
+    inputs = {"messages": [{"role": "system", "content": system_prompt},
+                           {"role": "user", "content": query}]}
     query_response = graph.invoke(inputs,config={"configurable": {"thread_id": thread_id}, "callbacks": [langfuse_handler]})
     log(f"Agent response is {query_response}.")
     rsp = query_response["messages"][-1].content
