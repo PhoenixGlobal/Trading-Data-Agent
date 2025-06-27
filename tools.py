@@ -313,13 +313,7 @@ def get_holders(crypto_symbol: str, limit: str):
             holder_datas = []
             amount = len(data["holdersData"])
             for dat in data["holdersData"]:
-                holder_data = {
-                    "holderAddress": dat["holderAddress"],
-                    "amount": dat["amount"],
-                    "rank": dat["rank"],
-                    "valueUsd": dat["valueUsd"],
-                }
-                holder_datas.append(holder_data)
+                holder_datas.append(dat)
             json_arr = json.dumps(holder_datas)
             log(f"The top {amount} holders of {crypto_id} are {json_arr}.")
             return f"The top {amount} holders of {crypto_id} are {json_arr}."
@@ -357,13 +351,7 @@ def get_contract_holders(contract_address: str, limit: str):
             holder_datas = []
             amount = len(data["holdersData"])
             for dat in data["holdersData"]:
-                holder_data = {
-                    "holderAddress": dat["holderAddress"],
-                    "amount": dat["amount"],
-                    "rank": dat["rank"],
-                    "valueUsd": dat["valueUsd"],
-                }
-                holder_datas.append(holder_data)
+                holder_datas.append(dat)
             json_arr = json.dumps(holder_datas)
             log(f"The top {amount} holders of {contract_address} are {json_arr}.")
             return f"The top {amount} holders of {contract_address} are {json_arr}."
