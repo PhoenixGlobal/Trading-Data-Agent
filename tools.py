@@ -463,7 +463,7 @@ def get_address_tokens(address: str, chain_name: str):
 
     Args:
         address: Blockchain address, such as 0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce.
-        chain_name:The name of the chain can only be one of the following values: abstract,ape_chain,arbitrum,arbitrum_nova,avalanche_c,b3,base,berachain,blast,bnb,bob,boba,celo,corn,cyber,degen,ethereum,fantom,flare,forma,fraxtal,funkichain,gnosis,ham,hychain,hyper_evm,ink,kaia,linea,lisk,mantle,metis,mint,mode,omni,opbnb,optimism,polygon,proof_of_play,proof_of_play_boss,rari,redstone,ronin,scroll,sei,shape,soneium,sonic,superposition,superseed,swellchain,tron,unichain,world,xai,zero_network,zkevm,zksync,zora. Other chains are not supported. The chain name should be converted to a valid value, such as converting BNB Chain to bnb, Ethereum to ethereum, Bitcoin to btc, Solana to solana, Avalanche to avalanche_c, and BASE to base.
+        chain_name:The name of the chain can only be one of the following values: abstract,ape_chain,arbitrum,arbitrum_nova,avalanche_c,b3,base,berachain,blast,bnb,bob,boba,celo,corn,cyber,degen,ethereum,fantom,flare,forma,fraxtal,funkichain,gnosis,ham,hychain,hyper_evm,ink,kaia,linea,lisk,mantle,metis,mint,mode,omni,opbnb,optimism,polygon,proof_of_play,proof_of_play_boss,rari,redstone,ronin,scroll,sei,shape,soneium,sonic,superposition,superseed,swellchain,tron,unichain,world,xai,zero_network,zkevm,zksync,zora. Other chains are not supported. The chain name should be converted to a valid value, such as converting BNB Chain to bnb, Ethereum to ethereum, Bitcoin to btc, Solana to solana, Avalanche to avalanche_c, and BASE to base. The chain name can be null.
 
     """
 
