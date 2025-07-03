@@ -285,11 +285,11 @@ def get_coin_rsi(crypto_symbol: str, time_span: str, time_window: str):
         return f"Failed to retrieve the RSI indicator of {crypto_id}."
 
 def get_holders(crypto_symbol: str, limit: str):
-    """Get holders of a cryptocurrency.For example, get the top 100 holders. Currently, querying holders of tokens on the Solana chain is not supported.
+    """Get holders of a cryptocurrency.For example, get the top 100 holders.
 
     Args:
         crypto_symbol: the cryptocurrency symbol, such as SHIB, PEPE, or BONK.
-        limit: The limit parameter represents the quantity. For example, when retrieving the top 100 holders, the limit is set to 100. The maximum limit cannot exceed 200; if it exceeds 200, it will still be set to 200.
+        limit: The limit parameter represents the quantity. For example, when retrieving the top 100 holders, the limit is set to 100. The maximum limit cannot exceed 100; if it exceeds 100, it will still be set to 100.
 
     """
 
@@ -324,11 +324,11 @@ def get_holders(crypto_symbol: str, limit: str):
         return f"Failed to retrieve the holders of {crypto_id}."
 
 def get_contract_holders(contract_address: str, limit: str):
-    """Get holders of a cryptocurrency based on the contract address.For example, get the top 100 holders. Currently, querying holders of tokens on the Solana chain is not supported.
+    """Get holders of a cryptocurrency based on the contract address.For example, get the top 100 holders.
 
     Args:
         contract_address: The contract address of a cryptocurrency.For example, SHIB's contract address is 0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce.
-        limit: The limit parameter represents the quantity. For example, when retrieving the top 100 holders, the limit is set to 100. The maximum limit cannot exceed 200; if it exceeds 200, it will still be set to 200.
+        limit: The limit parameter represents the quantity. For example, when retrieving the top 100 holders, the limit is set to 100. The maximum limit cannot exceed 100; if it exceeds 100, it will still be set to 100.
 
     """
 
