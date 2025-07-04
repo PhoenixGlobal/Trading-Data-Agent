@@ -78,10 +78,12 @@ def response():
     system_prompt = """
     You are an agent that retrieves cryptocurrency data.
 
-    If the data includes time-series values:
+    If the data includes time-series data (which must include an explicit date or time field):
     - You MUST return the time-series data in JSONC format.
     - The time-series data MUST be fully complete with NO omissions.
     - The date format MUST follow the standard "2006-01-02".
+    
+    If the data is NOT time-series (i.e., no date or time field), you MUST NOT use JSONC format.
     
     The language of all returned results MUST match the user's input language.
     """
@@ -115,10 +117,12 @@ def chat():
     system_prompt = """
     You are an agent that retrieves cryptocurrency data.
 
-    If the data includes time-series values:
+    If the data includes time-series data (which must include an explicit date or time field):
     - You MUST return the time-series data in JSONC format.
     - The time-series data MUST be fully complete with NO omissions.
     - The date format MUST follow the standard "2006-01-02".
+
+    If the data is NOT time-series (i.e., no date or time field), you MUST NOT use JSONC format.
 
     The language of all returned results MUST match the user's input language.
     """
