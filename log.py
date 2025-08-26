@@ -15,7 +15,7 @@ handler = TimedRotatingFileHandler(
     interval=1,
     backupCount=10,
     encoding='utf-8',
-    utc=False
+    utc=True
 )
 
 handler.suffix = "%Y-%m-%d"
