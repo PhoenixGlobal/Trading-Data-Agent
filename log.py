@@ -9,7 +9,29 @@ os.makedirs(log_dir, exist_ok=True)
 base_log_filename = "app.log"
 log_file = os.path.join(log_dir, base_log_filename)
 
-handler = TimedRotatingFileHandler(
+
+class SafeTimedRotatingFileHandler(TimedRotatingFileHandler):
+    def getFilesToDelete(self):
+        dirName, baseName = os.path.split(self.baseFilename)
+        fileNames = os.listdir(dirName)
+        result = []
+        prefix = baseName + "."
+        plen = len(prefix)
+        for fileName in fileNames:
+            if not fileName.startswith(prefix):
+                continue
+            suffix = fileName[plen:]
+            if self.extMatch.match(suffix):
+                result.append(os.path.join(dirName, fileName))
+        if not result:
+            return []
+        if len(result) <= self.backupCount:
+            return []
+        result.sort()
+        return result[:len(result) - self.backupCount]
+
+
+handler = SafeTimedRotatingFileHandler(
     filename=log_file,
     when='midnight',
     interval=1,
@@ -19,6 +41,7 @@ handler = TimedRotatingFileHandler(
 )
 
 handler.suffix = "%Y-%m-%d"
+# handler.extMatch = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 formatter = logging.Formatter(
     fmt="[%(levelname)s] %(asctime)s %(message)s",
