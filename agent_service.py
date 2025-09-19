@@ -27,9 +27,8 @@ tools = [get_coin_now_price, get_coin_historical_price, get_coin_market_cap, get
 tool_node = ToolNode(tools)
 
 model = ChatOpenAI(
-    model="accounts/fireworks/models/qwen3-235b-a22b-instruct-2507",
-    base_url="https://api.fireworks.ai/inference/v1",
-    api_key=os.getenv('FIREWORKS_API_KEY'),
+    model="gpt-4o-mini",
+    base_url=os.getenv('BASE_URL'),
     max_retries=2,
 ).bind_tools(tools)
 
