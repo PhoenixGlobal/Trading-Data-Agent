@@ -26,7 +26,12 @@ tools = [get_coin_now_price, get_coin_historical_price, get_coin_market_cap, get
 
 tool_node = ToolNode(tools)
 
-model = ChatOpenAI(model="gpt-4o-mini", max_retries=2).bind_tools(tools)
+model = ChatOpenAI(
+    model="accounts/fireworks/models/qwen3-235b-a22b-instruct-2507",
+    base_url="https://api.fireworks.ai/inference/v1",
+    api_key=os.getenv('FIREWORKS_API_KEY'),
+    max_retries=2,
+).bind_tools(tools)
 
 
 def should_continue(state: MessagesState) -> Literal["tools", END]:
