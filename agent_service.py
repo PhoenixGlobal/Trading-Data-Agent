@@ -6,14 +6,30 @@ from tools import *
 from dotenv import load_dotenv
 from langgraph.prebuilt import ToolNode
 from langgraph.graph import END, START, StateGraph, MessagesState
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.redis import RedisSaver
 from typing import Literal
 import os
 from langfuse.langchain import CallbackHandler
+import redis
 
 load_dotenv()
 
 langfuse_handler = CallbackHandler()
+
+redis_password = os.environ.get("REDIS_PASSWORD")
+ttl = os.environ.get("REDIS_TTL")
+pool = redis.ConnectionPool(
+    host='127.0.0.1',
+    port=6379,
+    db=0,
+    password=redis_password,
+    decode_responses=False,
+    max_connections=30
+)
+redis_client = redis.Redis(connection_pool=pool)
+ttl_config = {"default_ttl": int(ttl), "refresh_on_read": True}
+saver = RedisSaver(redis_client=redis_client, ttl=ttl_config)
+saver.setup()
 
 port = os.environ.get("PORT")
 app = Flask(__name__)
@@ -63,8 +79,7 @@ workflow.add_conditional_edges(
 )
 
 workflow.add_edge("tools", 'agent')
-
-checkpointer = MemorySaver()
+checkpointer = saver
 
 graph = workflow.compile(checkpointer=checkpointer)
 
