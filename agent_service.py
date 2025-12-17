@@ -7,8 +7,10 @@ from dotenv import load_dotenv
 from langgraph.prebuilt import ToolNode
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.checkpoint.redis import RedisSaver
-from typing import Literal
+from langchain_core.messages import AIMessage
+from typing import Literal, Dict, List
 import os
+import uuid
 from langfuse.langchain import CallbackHandler
 import redis
 
@@ -49,6 +51,13 @@ model = ChatOpenAI(
 ).bind_tools(tools)
 
 
+class RequestContext:
+    def __init__(self, user_query: str):
+        self.user_query = user_query
+        self.tools: List[Dict] = []
+        self.agent_output: str | None = None
+
+
 def should_continue(state: MessagesState) -> Literal["tools", END]:
     messages = state['messages']
     last_message = messages[-1]
@@ -57,8 +66,53 @@ def should_continue(state: MessagesState) -> Literal["tools", END]:
     return END
 
 
-def call_model(state: MessagesState):
+def save_to_redis(ctx: RequestContext):
+    record_id = str(uuid.uuid4())
+
+    data = {
+        "user_query": ctx.user_query,
+        "agent_output": ctx.agent_output,
+        "tools": ctx.tools,
+        "created_at": datetime.datetime.utcnow().isoformat()
+    }
+    print("Saving to Redis with record_id:", record_id, "data:", data)
+    redis_client.set(
+        f"agent_trace:{record_id}",
+        json.dumps(data),
+        ex=86400
+    )
+
+
+def get_latest_tools_with_args(state):
+    messages = state["messages"]
+
+    for msg in reversed(messages):
+        if isinstance(msg, AIMessage) and msg.tool_calls:
+            return [
+                {
+                    "tool_name": call["name"],
+                    "tool_args": call["args"],
+                }
+                for call in msg.tool_calls
+            ]
+    return []
+
+
+def call_model(state: MessagesState, config):
     messages = state['messages']
+    ctx = config["configurable"].get("ctx")
+
+    tool_calls = get_latest_tools_with_args(state)
+
+    if tool_calls:
+        print("GLOBAL TOOLS + ARGS:")
+        for t in tool_calls:
+            print(t)
+
+    if ctx and tool_calls:
+        print("ADDING TO CONTEXT", ctx)
+        ctx.tools.extend(tool_calls)
+
     model_response = model.invoke(messages)
     # We return a list, because this will get added to the existing list
     return {"messages": [model_response]}
@@ -81,7 +135,7 @@ workflow.add_conditional_edges(
 workflow.add_edge("tools", 'agent')
 checkpointer = saver
 
-graph = workflow.compile(checkpointer=checkpointer)
+graph = workflow.compile(checkpointer=checkpointer, name="crypto-agent")
 
 
 @app.route('/response', methods=["GET", "POST"])
@@ -113,9 +167,12 @@ def response():
     log(f"query data: {data},user_input:{query},thread_id:{thread_id}.")
     inputs = {"messages": [{"role": "system", "content": system_prompt},
                            {"role": "user", "content": query}]}
-    query_response = graph.invoke(inputs,config={"configurable": {"thread_id": thread_id}, "callbacks": [langfuse_handler]})
+    ctx = RequestContext(user_query=query)
+    query_response = graph.invoke(inputs,config={"configurable": {"thread_id": thread_id, "ctx": ctx}, "callbacks": [langfuse_handler]})
     log(f"Agent response is {query_response}.")
     rsp = query_response["messages"][-1].content
+    ctx.agent_output = rsp
+    save_to_redis(ctx)
     res_completion = {
         "query": query,
         "text": rsp,
