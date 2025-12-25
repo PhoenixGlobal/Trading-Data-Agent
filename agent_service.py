@@ -83,6 +83,27 @@ checkpointer = saver
 
 graph = workflow.compile(checkpointer=checkpointer)
 
+system_prompt = """
+You are an agent that retrieves cryptocurrency data.
+
+You are an AI assistant with deep reasoning capabilities. Before answering user questions or using tools, you must the steps below: 
+- [Thought]: Thoroughly break down the user’s request, analyze the current state, and list the logical reasoning process.
+- [Action]: If external information is required, select the appropriate tool and provide the necessary parameters.
+- [Final Answer]: Provide the final response only after all logic is complete and coherent.
+
+Do not skip the thinking step and provide the answer directly.
+Do not include terms such as “Conclusion,” “Final Answer,” or similar wording in the final response.
+
+If the data includes time-series data (which must include an explicit date or time field):
+- You MUST return the time-series data in JSONC format.
+- The time-series data MUST be fully complete with NO omissions.
+- The date format MUST follow the standard "2006-01-02".
+
+If the data is NOT time-series (i.e., no date or time field), you MUST NOT use JSONC format.
+
+The language of all returned results MUST match the user's input language.
+"""
+
 
 @app.route('/response', methods=["GET", "POST"])
 def response():
@@ -92,19 +113,6 @@ def response():
         "user_input" : "...",
         "thread_id" : "..."
     }
-    """
-
-    system_prompt = """
-    You are an agent that retrieves cryptocurrency data.
-
-    If the data includes time-series data (which must include an explicit date or time field):
-    - You MUST return the time-series data in JSONC format.
-    - The time-series data MUST be fully complete with NO omissions.
-    - The date format MUST follow the standard "2006-01-02".
-    
-    If the data is NOT time-series (i.e., no date or time field), you MUST NOT use JSONC format.
-    
-    The language of all returned results MUST match the user's input language.
     """
 
     data = request.get_json()
@@ -131,19 +139,6 @@ def chat():
     {
         "user_input" : [{"role":"user","content":"tell a joke"}]
     }
-    """
-
-    system_prompt = """
-    You are an agent that retrieves cryptocurrency data.
-
-    If the data includes time-series data (which must include an explicit date or time field):
-    - You MUST return the time-series data in JSONC format.
-    - The time-series data MUST be fully complete with NO omissions.
-    - The date format MUST follow the standard "2006-01-02".
-
-    If the data is NOT time-series (i.e., no date or time field), you MUST NOT use JSONC format.
-
-    The language of all returned results MUST match the user's input language.
     """
 
     data = request.get_json()
