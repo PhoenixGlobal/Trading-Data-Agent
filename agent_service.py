@@ -9,13 +9,14 @@ from langgraph.prebuilt import ToolNode
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.checkpoint.redis import AsyncRedisSaver
 from langchain_mcp_adapters.client import MultiServerMCPClient
-from typing import Literal
+from typing import Literal, List
 import os
 from langfuse import get_client
 from langfuse.langchain import CallbackHandler
 from pydantic import BaseModel
 import redis.asyncio as async_redis
 import uvicorn
+from contextlib import asynccontextmanager
 
 load_dotenv()
 
@@ -24,19 +25,14 @@ langfuse = get_client()
 
 langfuse_handler = CallbackHandler()
 
-redis_password = os.environ.get("REDIS_PASSWORD")
-ttl = os.environ.get("REDIS_TTL")
-pool = None
-redis_client = None
-ttl_config = {"default_ttl": int(ttl), "refresh_on_read": True}
 saver = None
 
 port = os.environ.get("PORT")
 mcp_url = os.environ.get("MCP_URL")
-app = FastAPI()
 
 tools = []
 tool_node = None
+
 
 async def get_mcp_tools():
     global tools, tool_node
@@ -49,21 +45,17 @@ async def get_mcp_tools():
         }
     )
     tools = await client.get_tools()
-    print(f"Loaded {len(tools)} tools from MCP, tools: {tools}")
     tool_node = ToolNode(tools)
 
 
-# tools = [get_coin_now_price, get_coin_historical_price, get_coin_market_cap, get_coin_supply_info,
-#          get_coin_historical_periods_price, get_coin_order_book, get_coin_rsi, get_holders, get_contract_holders,
-#          get_contract_token_info, get_coin_info, get_dex_pool_info, get_address_tokens,
-#          get_coin_historical_price_change, get_coin_macd, get_coin_kdj, get_tokens_by_topic,
-#          search_x_by_keyword, get_coin_insights]
-
-
-@app.on_event("startup")
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     await get_mcp_tools()
-    global pool, redis_client, saver
+    global saver
+
+    redis_password = os.environ.get("REDIS_PASSWORD")
+    ttl = os.environ.get("REDIS_TTL")
+    ttl_config = {"default_ttl": int(ttl), "refresh_on_read": True}
     pool = async_redis.ConnectionPool(
         host='127.0.0.1',
         port=6379,
@@ -75,11 +67,18 @@ async def startup_event():
     redis_client = async_redis.Redis(connection_pool=pool)
     saver = AsyncRedisSaver(redis_client=redis_client, ttl=ttl_config)
     await saver.setup()
-    loop = asyncio.get_running_loop()
-    loop.run_in_executor(None, create_graph)
+
+    create_graph()
+
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
+
 
 graph = None
 model = None
+
 
 def create_graph():
     global graph, tools, tool_node, saver, model
@@ -87,6 +86,7 @@ def create_graph():
         model="gpt-4o-mini",
         base_url=os.getenv('BASE_URL'),
         max_retries=2,
+        callbacks=[langfuse_handler],
     ).bind_tools(tools)
     workflow = StateGraph(MessagesState)
 
@@ -120,7 +120,6 @@ async def call_model(state: MessagesState):
     messages = state['messages']
     model_response = await model.ainvoke(messages)
     # We return a list, because this will get added to the existing list
-    print(f"Token Usage Check: {model_response.usage_metadata}")
     return {"messages": [model_response]}
 
 
@@ -151,11 +150,13 @@ class RspItem(BaseModel):
     text: str
     created: float
 
+
 class Item(BaseModel):
     user_input: str
     thread_id: str
 
 
+@app.get('/response', response_model=RspItem)
 @app.post('/response', response_model=RspItem)
 async def response(item: Item):
     """
@@ -165,16 +166,14 @@ async def response(item: Item):
         "thread_id" : "..."
     }
     """
-    handler = CallbackHandler()
     log(f"chat query data: {item}.")
-    # data = request.get_json()
     query = item.user_input
     thread_id = item.thread_id
     log(f"user_input:{query},thread_id:{thread_id}.")
     inputs = {"messages": [{"role": "system", "content": system_prompt},
                            {"role": "user", "content": query}]}
-    query_response = await graph.ainvoke(inputs,config={"configurable": {"thread_id": thread_id}, "callbacks": [handler]})
-    handler.client.flush()
+    query_response = await graph.ainvoke(inputs, config={"configurable": {"thread_id": thread_id},
+                                                         "callbacks": [langfuse_handler]})
     log(f"Agent response is {query_response}.")
     rsp = query_response["messages"][-1].content
     res_completion = {
@@ -185,8 +184,18 @@ async def response(item: Item):
     return res_completion
 
 
-@app.post('/response', response_model=RspItem)
-async def chat(item: Item):
+class Message(BaseModel):
+    role: str
+    content: str
+
+
+class ChatItem(BaseModel):
+    user_input: List[Message]
+
+
+@app.get('/chat', response_model=RspItem)
+@app.post('/chat', response_model=RspItem)
+async def chat(item: ChatItem):
     """
     current request body:
     {
@@ -195,18 +204,18 @@ async def chat(item: Item):
     """
 
     log(f"chat query data: {item}.")
-    # data = request.get_json()
-    query = item.user_input
-    thread_id = item.thread_id
-    log(f"user_input:{query},thread_id:{thread_id}.")
+    query = [m.model_dump() for m in item.user_input]
+    log(f"user_input:{query}.")
+    query.insert(0, {"role": "system", "content": system_prompt})
     inputs = {"messages": query}
     millis = int(time.time() * 1000)
     thread_id = f"chat-{millis}"
-    query_response = await graph.ainvoke(inputs, config={"configurable": {"thread_id": thread_id}, "callbacks": [langfuse_handler]})
+    query_response = await graph.ainvoke(inputs, config={"configurable": {"thread_id": thread_id},
+                                                         "callbacks": [langfuse_handler]})
     log(f"Agent chat response is {query_response}.")
     rsp = query_response["messages"][-1].content
     res_completion = {
-        "query": query,
+        "query": query[-1]["content"],
         "text": rsp,
         "created": datetime.datetime.now().timestamp(),
     }
