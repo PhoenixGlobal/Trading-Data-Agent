@@ -32,6 +32,7 @@ ttl_config = {"default_ttl": int(ttl), "refresh_on_read": True}
 saver = None
 
 port = os.environ.get("PORT")
+mcp_url = os.environ.get("MCP_URL")
 app = FastAPI()
 
 tools = []
@@ -43,7 +44,7 @@ async def get_mcp_tools():
         {
             "Crypto-Agent": {
                 "transport": "sse",
-                "url": "http://127.0.0.1:8000/sse",
+                "url": mcp_url,
             }
         }
     )
