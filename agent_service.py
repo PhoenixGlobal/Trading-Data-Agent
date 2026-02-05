@@ -4,11 +4,15 @@ from log import log
 from fastapi import FastAPI
 from langchain_openai import ChatOpenAI
 import time
+import json
+from langchain_core.runnables.config import var_child_runnable_config
+from langchain_core.messages import ToolMessage
 from dotenv import load_dotenv
 from langgraph.prebuilt import ToolNode
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.checkpoint.redis import AsyncRedisSaver
 from langchain_mcp_adapters.client import MultiServerMCPClient
+from langgraph.types import Command, interrupt
 from typing import Literal, List
 import os
 from langfuse import get_client
@@ -25,10 +29,53 @@ langfuse = get_client()
 
 langfuse_handler = CallbackHandler()
 
+model_name = "gpt-4o-mini"
+
 saver = None
 
 port = os.environ.get("PORT")
 mcp_url = os.environ.get("MCP_URL")
+
+
+async def custom_tool_interceptor(state: MessagesState, config):
+    global tools, tool_node
+    thread_id = config.get("configurable", {}).get("thread_id", "default_thread")
+    last_message = state["messages"][-1]
+
+    if not hasattr(last_message, "tool_calls") or not last_message.tool_calls:
+        return await tool_node.ainvoke(state, config=config)
+
+    needs_approval = any(tc["name"] == "deploy_user_strategy" for tc in last_message.tool_calls)
+
+    if needs_approval:
+        var_child_runnable_config.set(config)
+        log(f"Interceptor: var_child_runnable_config set config {config}.")
+        confirm_prompt = "Do you approve deploying the user strategy?"
+        for tool_call in last_message.tool_calls:
+            if tool_call["name"] == "deploy_user_strategy":
+                tool_call["args"]["thread_id"] = thread_id
+                log(f"Interceptor: Injected thread_id {thread_id} into tool calls.")
+                print(f"Interceptor: Injected thread_id {thread_id} into tool calls.")
+                confirm_prompt = tool_call["args"]
+        log(f"Interceptor: Confirmation Prompt: {confirm_prompt}")
+        answer = interrupt(json.dumps(confirm_prompt))
+        result = answer["decisions"][0]["type"]
+        if result != "approve":
+            tool_output = {}
+            for tc in last_message.tool_calls:
+                if tc["name"] == "deploy_user_strategy":
+                    tool_output = ToolMessage(
+                                        name=tc["name"],
+                                        role="tool",
+                                        tool_call_id=tc["id"],
+                                        content=f"Operation cancelled by user.",
+                                        status="error"
+                                  )
+            state["messages"].append(tool_output)
+            return state
+
+    return await tool_node.ainvoke(state, config=config)
+
 
 tools = []
 tool_node = None
@@ -83,15 +130,16 @@ model = None
 def create_graph():
     global graph, tools, tool_node, saver, model
     model = ChatOpenAI(
-        model="gpt-4o-mini",
+        model=model_name,
         base_url=os.getenv('BASE_URL'),
         max_retries=2,
         callbacks=[langfuse_handler],
     ).bind_tools(tools)
+
     workflow = StateGraph(MessagesState)
 
     workflow.add_node("agent", call_model)
-    workflow.add_node("tools", tool_node)
+    workflow.add_node("tools", custom_tool_interceptor)
 
     workflow.add_edge(START, "agent")
     workflow.add_conditional_edges(
@@ -149,6 +197,7 @@ class RspItem(BaseModel):
     query: str
     text: str
     created: float
+    interrupt: str
 
 
 class Item(BaseModel):
@@ -172,12 +221,67 @@ async def response(item: Item):
     log(f"user_input:{query},thread_id:{thread_id}.")
     inputs = {"messages": [{"role": "system", "content": system_prompt},
                            {"role": "user", "content": query}]}
-    query_response = await graph.ainvoke(inputs, config={"configurable": {"thread_id": thread_id},
-                                                         "callbacks": [langfuse_handler]})
-    log(f"Agent response is {query_response}.")
+    try:
+        query_response = await graph.ainvoke(inputs, config={"configurable": {"thread_id": thread_id},
+                                                             "callbacks": [langfuse_handler]})
+        log(f"Agent response is {query_response}.")
+        print(f"Agent response is {query_response}.")
+
+        if "__interrupt__" in query_response:
+            interrupt_data = query_response["__interrupt__"]
+            return {
+                "query": query,
+                "text": "You need to confirm this action.",
+                "created": datetime.datetime.now().timestamp(),
+                "interrupt": interrupt_data[0].value
+            }
+
+        rsp = query_response["messages"][-1].content
+        res_completion = {
+            "query": query,
+            "text": rsp,
+            "created": datetime.datetime.now().timestamp(),
+            "interrupt": ""
+        }
+        return res_completion
+    except Exception as e:
+        log(f"Error: {str(e)}")
+        return {
+            "query": query,
+            "text": "ERROR: " + str(e),
+            "created": datetime.datetime.now().timestamp(),
+            "interrupt": ""
+        }
+
+
+class RspItem(BaseModel):
+    query: str
+    text: str
+    created: float
+    interrupt: str
+
+
+class ResumeItem(BaseModel):
+    decision: str
+    thread_id: str
+
+
+@app.post("/resume")
+async def resume_resume(item: ResumeItem):
+    # decisions: "approve" or "reject"
+    resume_cmd = Command(resume={
+        "decisions": [{"type": item.decision}]
+    })
+
+    config = {"configurable": {"thread_id": item.thread_id},
+              "callbacks": [langfuse_handler]}
+
+    query_response = await graph.ainvoke(resume_cmd, config=config)
+
     rsp = query_response["messages"][-1].content
     res_completion = {
-        "query": query,
+        "thread_id": item.thread_id,
+        "query": item.decision,
         "text": rsp,
         "created": datetime.datetime.now().timestamp(),
     }
