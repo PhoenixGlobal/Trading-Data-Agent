@@ -36,6 +36,7 @@ saver = None
 port = os.environ.get("PORT")
 mcp_url = os.environ.get("MCP_URL")
 
+needs_approval_tool_names = ["deploy_user_strategy", "create_manual_split_order"]
 
 async def custom_tool_interceptor(state: MessagesState, config):
     global tools, tool_node
@@ -45,14 +46,14 @@ async def custom_tool_interceptor(state: MessagesState, config):
     if not hasattr(last_message, "tool_calls") or not last_message.tool_calls:
         return await tool_node.ainvoke(state, config=config)
 
-    needs_approval = any(tc["name"] == "deploy_user_strategy" for tc in last_message.tool_calls)
+    needs_approval = any(tc["name"] in needs_approval_tool_names for tc in last_message.tool_calls)
 
     if needs_approval:
         var_child_runnable_config.set(config)
         log(f"Interceptor: var_child_runnable_config set config {config}.")
         confirm_prompt = "Do you approve deploying the user strategy?"
         for tool_call in last_message.tool_calls:
-            if tool_call["name"] == "deploy_user_strategy":
+            if tool_call["name"] in needs_approval_tool_names:
                 tool_call["args"]["thread_id"] = thread_id
                 log(f"Interceptor: Injected thread_id {thread_id} into tool calls.")
                 print(f"Interceptor: Injected thread_id {thread_id} into tool calls.")
@@ -63,7 +64,7 @@ async def custom_tool_interceptor(state: MessagesState, config):
         if result != "approve":
             tool_output = {}
             for tc in last_message.tool_calls:
-                if tc["name"] == "deploy_user_strategy":
+                if tc["name"] in needs_approval_tool_names:
                     tool_output = ToolMessage(
                                         name=tc["name"],
                                         role="tool",
