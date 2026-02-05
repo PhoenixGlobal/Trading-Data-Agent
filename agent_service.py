@@ -323,6 +323,7 @@ async def chat(item: ChatItem):
         "query": query[-1]["content"],
         "text": rsp,
         "created": datetime.datetime.now().timestamp(),
+        "interrupt": ""
     }
     return res_completion
 
