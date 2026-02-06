@@ -35,8 +35,18 @@ saver = None
 
 port = os.environ.get("PORT")
 mcp_url = os.environ.get("MCP_URL")
+max_rounds = int(os.environ.get("MAX_ROUNDS"))
 
 needs_approval_tool_names = ["deploy_user_strategy", "create_manual_split_order"]
+
+
+def trim_history(messages, max_limits):
+    system_prompt = messages[0] if messages and messages[0]["role"] == "system" else None
+    rounds = [msg for msg in messages if msg["role"] != "system"]
+
+    trimmed_rounds = rounds[-(max_limits * 2 + 1):]
+    return [system_prompt] + trimmed_rounds if system_prompt else trimmed_rounds
+
 
 async def custom_tool_interceptor(state: MessagesState, config):
     global tools, tool_node
@@ -318,9 +328,13 @@ async def chat(item: ChatItem):
         "user_input" : [{"role":"user","content":"tell a joke"}]
     }
     """
-
+    global max_rounds
     log(f"chat query data: {item}.")
     query = [m.model_dump() for m in item.user_input]
+
+    if len(query) > max_rounds * 2 + 1:
+        query = trim_history(query, max_rounds)
+
     log(f"user_input:{query}.")
     query.insert(0, {"role": "system", "content": system_prompt})
     inputs = {"messages": query}
