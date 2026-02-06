@@ -78,12 +78,12 @@ async def custom_tool_interceptor(state: MessagesState, config):
             for tc in last_message.tool_calls:
                 if tc["name"] in needs_approval_tool_names:
                     tool_output = ToolMessage(
-                                        name=tc["name"],
-                                        role="tool",
-                                        tool_call_id=tc["id"],
-                                        content=f"Operation cancelled by user.",
-                                        status="error"
-                                  )
+                        name=tc["name"],
+                        role="tool",
+                        tool_call_id=tc["id"],
+                        content=f"Operation cancelled by user.",
+                        status="error"
+                    )
             state["messages"].append(tool_output)
             return state
 
@@ -135,7 +135,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-
 graph = None
 model = None
 
@@ -177,7 +176,30 @@ def should_continue(state: MessagesState) -> Literal["tools", END]:
     return END
 
 
+def deal_interrupted(state: MessagesState):
+    messages = state['messages']
+    if len(messages) > 2:
+        last_msg = messages[-1]
+        prev_msg = messages[-3]
+        if (prev_msg.type == "ai" and hasattr(prev_msg, "tool_calls") and
+                prev_msg.tool_calls and last_msg.type == "human"):
+            tool_output = {}
+            for tc in prev_msg.tool_calls:
+                if tc["name"] in needs_approval_tool_names:
+                    tool_output = ToolMessage(
+                        name=tc["name"],
+                        role="tool",
+                        tool_call_id=tc["id"],
+                        content="The user ignored this confirmation and initiated a new request. This operation is cancelled.",
+                        status="error"
+                    )
+                    log("Interceptor: Detected interrupted tool call, inserting cancellation message.")
+            state["messages"].insert(-2, tool_output)
+    return state
+
+
 async def call_model(state: MessagesState):
+    state = deal_interrupted(state)
     messages = state['messages']
     model_response = await model.ainvoke(messages)
     # We return a list, because this will get added to the existing list
