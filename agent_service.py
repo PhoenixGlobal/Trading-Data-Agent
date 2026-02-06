@@ -277,16 +277,25 @@ async def resume(item: ResumeItem):
     config = {"configurable": {"thread_id": item.thread_id},
               "callbacks": [langfuse_handler]}
 
-    query_response = await graph.ainvoke(resume_cmd, config=config)
+    try:
+        query_response = await graph.ainvoke(resume_cmd, config=config)
 
-    rsp = query_response["messages"][-1].content
-    res_completion = {
-        "thread_id": item.thread_id,
-        "query": item.decision,
-        "text": rsp,
-        "created": datetime.datetime.now().timestamp(),
-    }
-    return res_completion
+        rsp = query_response["messages"][-1].content
+        res_completion = {
+            "thread_id": item.thread_id,
+            "query": item.decision,
+            "text": rsp,
+            "created": datetime.datetime.now().timestamp(),
+        }
+        return res_completion
+    except Exception as e:
+        log(f"Error: {str(e)}")
+        return {
+            "thread_id": item.thread_id,
+            "query": item.decision,
+            "text": "ERROR: " + str(e),
+            "created": datetime.datetime.now().timestamp(),
+        }
 
 
 class Message(BaseModel):
