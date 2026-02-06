@@ -59,7 +59,7 @@ async def custom_tool_interceptor(state: MessagesState, config):
     needs_approval = any(tc["name"] in needs_approval_tool_names for tc in last_message.tool_calls)
 
     if needs_approval:
-        confirm_prompt = "Do you approve deploying the user strategy?"
+        confirm_prompt = "Please confirm the operation."
         for tool_call in last_message.tool_calls:
             if tool_call["name"] in needs_approval_tool_names:
                 tool_call["args"]["thread_id"] = thread_id
