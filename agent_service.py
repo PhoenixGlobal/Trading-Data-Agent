@@ -268,7 +268,7 @@ class ResumeItem(BaseModel):
 
 
 @app.post("/resume")
-async def resume_resume(item: ResumeItem):
+async def resume(item: ResumeItem):
     # decisions: "approve" or "reject"
     resume_cmd = Command(resume={
         "decisions": [{"type": item.decision}]
