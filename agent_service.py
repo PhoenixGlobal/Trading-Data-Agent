@@ -315,17 +315,36 @@ async def chat(item: ChatItem):
     inputs = {"messages": query}
     millis = int(time.time() * 1000)
     thread_id = f"chat-{millis}"
-    query_response = await graph.ainvoke(inputs, config={"configurable": {"thread_id": thread_id},
-                                                         "callbacks": [langfuse_handler]})
-    log(f"Agent chat response is {query_response}.")
-    rsp = query_response["messages"][-1].content
-    res_completion = {
-        "query": query[-1]["content"],
-        "text": rsp,
-        "created": datetime.datetime.now().timestamp(),
-        "interrupt": ""
-    }
-    return res_completion
+    try:
+        query_response = await graph.ainvoke(inputs, config={"configurable": {"thread_id": thread_id},
+                                                             "callbacks": [langfuse_handler]})
+        log(f"Agent chat response is {query_response}.")
+
+        if "__interrupt__" in query_response:
+            interrupt_data = query_response["__interrupt__"]
+            return {
+                "query": query[-1]["content"],
+                "text": "You need to confirm this action.",
+                "created": datetime.datetime.now().timestamp(),
+                "interrupt": interrupt_data[0].value
+            }
+
+        rsp = query_response["messages"][-1].content
+        res_completion = {
+            "query": query[-1]["content"],
+            "text": rsp,
+            "created": datetime.datetime.now().timestamp(),
+            "interrupt": ""
+        }
+        return res_completion
+    except Exception as e:
+        log(f"Error: {str(e)}")
+        return {
+            "query": query[-1]["content"],
+            "text": "ERROR: " + str(e),
+            "created": datetime.datetime.now().timestamp(),
+            "interrupt": ""
+        }
 
 
 if __name__ == "__main__":
