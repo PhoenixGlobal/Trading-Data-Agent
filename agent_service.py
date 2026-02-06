@@ -49,8 +49,6 @@ async def custom_tool_interceptor(state: MessagesState, config):
     needs_approval = any(tc["name"] in needs_approval_tool_names for tc in last_message.tool_calls)
 
     if needs_approval:
-        var_child_runnable_config.set(config)
-        log(f"Interceptor: var_child_runnable_config set config {config}.")
         confirm_prompt = "Do you approve deploying the user strategy?"
         for tool_call in last_message.tool_calls:
             if tool_call["name"] in needs_approval_tool_names:
@@ -59,7 +57,11 @@ async def custom_tool_interceptor(state: MessagesState, config):
                 print(f"Interceptor: Injected thread_id {thread_id} into tool calls.")
                 confirm_prompt = tool_call["args"]
         log(f"Interceptor: Confirmation Prompt: {confirm_prompt}")
+
+        var_child_runnable_config.set(config)
+        log(f"Interceptor: var_child_runnable_config set config {config}.")
         answer = interrupt(json.dumps(confirm_prompt))
+
         result = answer["decisions"][0]["type"]
         if result != "approve":
             tool_output = {}
