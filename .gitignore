@@ -3,4 +3,6 @@ __pycache__
 log
 log/test.log
 .env
+docker-compose.yml
+/data
 

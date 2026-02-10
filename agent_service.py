@@ -7,17 +7,30 @@ from dotenv import load_dotenv
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 import os
+from langfuse import get_client
+from langfuse.langchain import CallbackHandler
 from langgraph_supervisor import create_supervisor
 
 load_dotenv()
 
+# Initialize Langfuse client
+langfuse = get_client()
+
+langfuse_handler = CallbackHandler()
+
 port = os.environ.get("PORT")
 app = Flask(__name__)
+
+model = ChatOpenAI(
+    model="gpt-4o-mini",
+    base_url=os.getenv('BASE_URL'),
+    max_retries=2,
+)
 
 # model = ChatOpenAI(model="gpt-4o-mini")
 
 market_agent = create_react_agent(
-    model=ChatOpenAI(model="gpt-4o-mini", max_retries=2),
+    model=model,
     tools=[get_coin_now_price, get_coin_historical_price, get_coin_market_cap, get_coin_supply_info,get_coin_info,
            get_coin_historical_periods_price, get_coin_order_book, get_coin_rsi, get_coin_historical_price_change,
            get_coin_macd, get_coin_kdj, get_coin_insights],
@@ -27,7 +40,7 @@ market_agent = create_react_agent(
 )
 
 chain_agent = create_react_agent(
-    model=ChatOpenAI(model="gpt-4o-mini", max_retries=2),
+    model=model,
     tools=[get_holders, get_contract_holders,get_contract_token_info,get_dex_pool_info,
            get_address_summary, get_address_tokens,get_address_token,  get_tokens_by_topic],
     prompt="You are an agent that retrieves on-chain cryptocurrency data. You can obtain information such as holders, "
@@ -38,7 +51,7 @@ chain_agent = create_react_agent(
 )
 
 social_sentiment_agent = create_react_agent(
-    model=ChatOpenAI(model="gpt-4o-mini", max_retries=2),
+    model=model,
     tools=[search_x_by_keyword],
     prompt="You are an agent that retrieves public sentiment on cryptocurrency from social media. You can query tweets "
            "based on specific keywords.",
@@ -48,7 +61,7 @@ social_sentiment_agent = create_react_agent(
 check_pointer = MemorySaver()
 
 supervisor = create_supervisor(
-    model=ChatOpenAI(model="gpt-4o-mini", max_retries=2),
+    model=model,
     agents=[market_agent, chain_agent, social_sentiment_agent],
     prompt=(
         "You are a supervisor managing three agents:"
@@ -84,7 +97,7 @@ def response():
     thread_id = data.get("thread_id")
     log(f"query data: {data},user_input:{query},thread_id:{thread_id}.")
     inputs = {"messages": [("user", query)]}
-    query_response = graph.invoke(inputs,config={"configurable": {"thread_id": thread_id}})
+    query_response = graph.invoke(inputs,config={"configurable": {"thread_id": thread_id},"callbacks": [langfuse_handler]})
     log(f"Agent response is {query_response}.")
     rsp = query_response["messages"][-1].content
     res_completion = {
