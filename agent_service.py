@@ -240,6 +240,29 @@ The language of all returned results MUST match the user's input language.
 """
 
 
+def friendly_error_message(e: Exception) -> str:
+    """
+    Map internal exceptions to user-friendly messages.
+    """
+    err = str(e).lower()
+
+    # Common cases (can be extended over time)
+    if "timeout" in err or "timed out" in err:
+        return "The request timed out. Please try again later."
+
+    if "connection" in err or "redis" in err:
+        return "The service is temporarily unavailable. Please try again later."
+
+    if "tool" in err:
+        return "There was an issue while performing the requested operation. Please check your input and try again."
+
+    if "rate limit" in err or "429" in err:
+        return "Too many requests. Please wait a moment and try again."
+
+    # Fallback
+    return "Something went wrong. Please try again later or contact support."
+
+
 class RspItem(BaseModel):
     query: str
     text: str
@@ -295,7 +318,7 @@ async def response(item: Item):
         log(f"Error: {str(e)}")
         return {
             "query": query,
-            "text": "ERROR: " + str(e),
+            "text": friendly_error_message(e),
             "created": datetime.datetime.now().timestamp(),
             "interrupt": ""
         }
@@ -339,7 +362,7 @@ async def resume(item: ResumeItem):
         return {
             "thread_id": item.thread_id,
             "query": item.decision,
-            "text": "ERROR: " + str(e),
+            "text": friendly_error_message(e),
             "created": datetime.datetime.now().timestamp(),
         }
 
@@ -400,7 +423,7 @@ async def chat(item: ChatItem):
         log(f"Error: {str(e)}")
         return {
             "query": query[-1]["content"],
-            "text": "ERROR: " + str(e),
+            "text": friendly_error_message(e),
             "created": datetime.datetime.now().timestamp(),
             "interrupt": ""
         }
